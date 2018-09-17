@@ -35,7 +35,7 @@ namespace XbTool
 		private static void ReadGimmick(Options options)
 		{
 			BdatCollection tables = GetBdatCollection(options);
-			var items = File.ReadAllLines($"{options.DataDir}/../items.txt");
+			var items = File.ReadAllLines($"{options.DataDir}/../npcs.txt");
 			foreach (string name in items)
 			{
 				options.Filter = name;
