@@ -3,7 +3,6 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
-using XbTool.Common;
 using XbTool.Common.Textures;
 using XbTool.Xb2.Textures;
 
@@ -11,18 +10,36 @@ namespace XbTool.Gimmick
 {
     public static class ExportMap
     {
-        public static void Export(IFileReader fs, MapInfo[] gimmicks, string outDir)
+        public static void Export(Options options, MapInfo[] gimmicks)
         {
-            Directory.CreateDirectory(Path.Combine(outDir, "png"));
 
             foreach (var map in gimmicks)
             {
-                //if (map.Name != "ma02a") continue;
+                //if (map.Name != "ma40a") continue;
                 foreach (var area in map.Areas)
                 {
-                    //if (area.Name != "ma02a_f01") continue;
-                    string texPath = $"/menu/image/{area.Name}_map.wilay";
-                    var texBytes = fs.ReadFile(texPath);
+					//if (area.Name != "ma02a_f01") continue;
+					//The files and info for the caves is super glitchy and weird, just changing em so no crashes or funny business
+					if (area.Name == "ma40a_f01_cave1")
+					{
+						area.Name = "dlc3_ma40a_f01";
+						area.SegmentInfo = map.Areas[0].SegmentInfo;
+					}
+
+					if (area.Name == "ma40a_f02_cave1")
+					{
+						area.Name = "dlc3_ma40a_f02";
+						area.SegmentInfo = map.Areas[1].SegmentInfo;
+					}
+					if (area.Name == "ma40a_f03_cave1")
+					{
+						area.Name = "dlc3_ma40a_f03";
+						area.SegmentInfo = map.Areas[2].SegmentInfo;
+					}
+
+
+					string texPath = $"{options.DataDir}/menu/image/{area.Name}_map.wilay";
+					var texBytes = File.ReadAllBytes(texPath);
                     var wilay = new WilayRead(texBytes);
                     LahdTexture texture = wilay.Textures[0];
                     var bitmapBase = texture.ToBitmap();
@@ -39,13 +56,15 @@ namespace XbTool.Gimmick
                     foreach (var gmkType in area.Gimmicks)
                     {
                         var type = gmkType.Key;
-                        //if (type != "landmark") continue;
+                        //if (type != "enemy") continue;
                         var bitmap = (Bitmap)bitmapBase.Clone();
+						int count = 0;
                         using (Graphics graphics = Graphics.FromImage(bitmap))
                         {
                             foreach (InfoEntry gmk in gmkType.Value)
                             {
-                                var point = area.Get2DPosition(gmk.Xfrm.Position);
+								count++;
+								var point = area.Get2DPosition(gmk.Xfrm.Position);
                                 graphics.FillCircle(innerBrush, point.X * scale, point.Y * scale, 8 * scale);
                                 graphics.DrawCircle(pen, point.X * scale, point.Y * scale, 8 * scale);
                             }
@@ -71,10 +90,10 @@ namespace XbTool.Gimmick
                             //    graphics.DrawString(text, new Font("Arial", 8 * scale), outerBrush, point.X * scale, point.Y * scale);
                             //}
                         }
-
+						if (count == 0) continue;
                         var png = bitmap.ToPng();
-
-                        File.WriteAllBytes(Path.Combine(outDir, $"png/{map.DisplayName} - {area.DisplayName} - {type}.png"), png);
+						Directory.CreateDirectory(Path.Combine(options.Output, $"{options.Filter}/"));
+						File.WriteAllBytes(Path.Combine(options.Output, $"{options.Filter}/{map.DisplayName} - {area.Name}.png"), png);
                     }
                 }
             }
@@ -161,8 +180,8 @@ namespace XbTool.Gimmick
         public static void FillCircle(this Graphics g, Brush brush,
             float centerX, float centerY, float radius)
         {
-            g.FillEllipse(brush, centerX - radius, centerY - radius,
-                radius + radius, radius + radius);
+			g.FillEllipse(brush, centerX - radius, centerY - radius,
+				radius + radius, radius + radius);
         }
 
         public static void DrawRect(this Graphics g, Pen pen,
@@ -192,8 +211,8 @@ namespace XbTool.Gimmick
         public static void DrawCircle(this Graphics g, Pen pen,
             float centerX, float centerY, float radius)
         {
-            g.DrawEllipse(pen, centerX - radius, centerY - radius,
-                radius + radius, radius + radius);
+			g.DrawEllipse(pen, centerX - radius, centerY - radius,
+				radius + radius, radius + radius);
         }
     }
 }

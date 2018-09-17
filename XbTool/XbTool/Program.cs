@@ -10,8 +10,10 @@ namespace XbTool
     {
         public static void Main(string[] args)
         {
-            Options options = CliArguments.Parse(args);
-            if (options == null) return;
+			Options options = new Options();
+			options.Game = Common.Game.XB2;
+			options.DataDir = Directory.GetCurrentDirectory() + "/Data";
+			options.Output = Directory.GetCurrentDirectory() + "/Maps";
             Tasks.RunTask(options);
         }
     }

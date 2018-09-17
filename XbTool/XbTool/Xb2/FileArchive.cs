@@ -182,7 +182,7 @@ namespace XbTool.Xb2
 
                     using (var deflate = new ZlibStream(input, CompressionMode.Decompress, true))
                     {
-                        deflate.CopyTo(output, fileInfo.UncompressedSize);
+						deflate.CopyTo(output, fileInfo.UncompressedSize);
                     }
                     break;
                 case 0:
