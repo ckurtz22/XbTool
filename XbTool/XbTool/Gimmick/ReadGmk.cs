@@ -59,11 +59,12 @@ namespace XbTool.Gimmick
 
                 var gimmickSet = ReadGimmickSet($"{options.DataDir}/gmk", tables, map.Id);
 				//AssignGimmickAreas(gimmickSet, mapInfo);
-				AssignGimmickCollectionAreas(gimmickSet, mapInfo, tables, options.Filter);
+				//AssignGimmickCollectionAreas(gimmickSet, mapInfo, tables, options.Filter);
 				//AssignGimmickEnemyAreas(gimmickSet, mapInfo, tables, options.Filter);
+				AssignGimmickNpcAreas(gimmickSet, mapInfo, tables, options.Filter);
 			}
 
-            return maps.Values.ToArray();
+			return maps.Values.ToArray();
         }
 
         public static Dictionary<string, Lvb> ReadGimmickSet(string gmkDir, BdatCollection tables, int mapId)
@@ -157,6 +158,32 @@ namespace XbTool.Gimmick
 					if (tornaEnemy.Count() > 0 && !(enemies.Contains(tornaEnemy.First()._ene1ID) || enemies.Contains(tornaEnemy.First()._ene2ID) ||
 						enemies.Contains(tornaEnemy.First()._ene3ID) || enemies.Contains(tornaEnemy.First()._ene4ID))) { continue; }
 					if (tornaEnemy.Count() == 0 && gormottEnemy.Count() == 0) continue;
+
+					MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
+					area?.AddGimmick(gmk, type);
+
+				}
+			}
+		}
+
+		public static void AssignGimmickNpcAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, BdatCollection tables, string npcName)
+		{
+			mapInfo.Gimmicks = set;
+
+			foreach (var gmkType in set)
+			{
+				var type = gmkType.Key;
+				if (type != "npc") continue;
+				foreach (var gmk in gmkType.Value.Info)
+				{
+					if (gmk.Name == "") continue;
+					var enemies = tables.RSC_NpcList.Where(x => x._Name?.name == npcName);
+					var gormottNpc = tables.ma41a_FLD_NpcPop.Where(x => x.name == gmk.Name);
+					var tornaNpc = tables.ma40a_FLD_NpcPop.Where(x => x.name == gmk.Name);
+
+					if (gormottNpc.Count() > 0 && !enemies.Contains(gormottNpc.First()._NpcID)) { continue; }
+					if (tornaNpc.Count() > 0 && !enemies.Contains(tornaNpc.First()._NpcID)) { continue; }
+					if (tornaNpc.Count() == 0 && gormottNpc.Count() == 0) continue;
 
 					MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
 					area?.AddGimmick(gmk, type);

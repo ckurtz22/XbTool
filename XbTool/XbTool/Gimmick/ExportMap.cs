@@ -56,7 +56,7 @@ namespace XbTool.Gimmick
                     foreach (var gmkType in area.Gimmicks)
                     {
                         var type = gmkType.Key;
-                        //if (type != "enemy") continue;
+                        //if (type != "precious") continue;
                         var bitmap = (Bitmap)bitmapBase.Clone();
 						int count = 0;
                         using (Graphics graphics = Graphics.FromImage(bitmap))
@@ -93,7 +93,8 @@ namespace XbTool.Gimmick
 						if (count == 0) continue;
                         var png = bitmap.ToPng();
 						Directory.CreateDirectory(Path.Combine(options.Output, $"{options.Filter}/"));
-						File.WriteAllBytes(Path.Combine(options.Output, $"{options.Filter}/{map.DisplayName} - {area.Name}.png"), png);
+						File.WriteAllBytes(Path.Combine(options.Output, 
+							$"{options.Filter}/{map.DisplayName} - {(area.DisplayName.Substring(0,5) == "ma40a" ? area.DisplayName : area.Name)}.png"), png);
                     }
                 }
             }
