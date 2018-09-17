@@ -1,3 +1,18 @@
-# Xenoblade Research
+Based off of Moosehunter's XbTool. 
 
-Repo for scratch work from reversing all 3 Xenoblade games, tools for reading their files, and information discovered by reverse engineering them.
+Program to output maps with locations of various gimmicks in XC2. Requires a data folder with common bdats, gimmick files, and map image files.
+
+Data
+-bdat
+--common.bdat
+--common_ms.bdat
+--common_gmk.bdat
+-gmk
+--ma40a_*.lvb
+--ma41a_*.lvb
+-menu
+--img
+---*_ma4*a_*.wilay
+--minimap
+---ma4*a.mi
+---*_ma4*a_*.seg
