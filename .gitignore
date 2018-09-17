@@ -261,3 +261,8 @@ __pycache__/
 *.pyc
 
 **/launchSettings.json
+/net45
+/XbTool/XbTool/Data/bdat
+/XbTool/XbTool/Data/gmk
+/XbTool/XbTool/Data/menu/image
+/XbTool/XbTool/Data/menu/minimap
