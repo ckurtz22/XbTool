@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.IO;
 using XbTool.Common;
 using XbTool.Types;
 
@@ -9,10 +8,10 @@ namespace XbTool.Gimmick
 {
     public static class ReadGmk
     {
-        public static MapInfo[] ReadAll(BdatCollection tables, Options options, IProgressReport progress = null)
+        public static MapInfo[] ReadAll(IFileReader fs, BdatCollection tables, IProgressReport progress = null)
         {
             progress?.LogMessage("Reading map info and gimmick sets");
-            Dictionary<string, MapInfo> maps = MapInfo.ReadAll($"{options.DataDir}/menu/minimap");
+            Dictionary<string, MapInfo> maps = MapInfo.ReadAll(fs);
 
             var mapList = tables.FLD_maplist;
             var areaList = tables.MNU_MapInfo;
@@ -57,16 +56,14 @@ namespace XbTool.Gimmick
                     if (area._disp_name?.name != null) areaInfo.DisplayName = area._disp_name.name;
                 }
 
-                var gimmickSet = ReadGimmickSet($"{options.DataDir}/gmk", tables, map.Id);
-				//AssignGimmickAreas(gimmickSet, mapInfo);
-				AssignGimmickCollectionAreas(gimmickSet, mapInfo, tables, options.Filter);
-				//AssignGimmickEnemyAreas(gimmickSet, mapInfo, tables, options.Filter);
-			}
+                var gimmickSet = ReadGimmickSet(fs, tables, map.Id);
+                AssignGimmickAreas(gimmickSet, mapInfo);
+            }
 
             return maps.Values.ToArray();
         }
 
-        public static Dictionary<string, Lvb> ReadGimmickSet(string gmkDir, BdatCollection tables, int mapId)
+        public static Dictionary<string, Lvb> ReadGimmickSet(IFileReader fs, BdatCollection tables, int mapId)
         {
             RSC_GmkSetList setBdat = tables.RSC_GmkSetList.First(x => x.mapId == mapId);
             var fieldsDict = setBdat.GetType().GetFields().ToDictionary(x => x.Name, x => x);
@@ -77,10 +74,10 @@ namespace XbTool.Gimmick
             {
                 var value = (string)field.GetValue(setBdat);
                 if (value == null) continue;
-                string filename = $"{gmkDir}/{value}.lvb";
-                if (!File.Exists(filename)) continue;
+                string filename = $"/gmk/{value}.lvb";
+                if (!fs.Exists(filename)) continue;
 
-                byte[] file = File.ReadAllBytes(filename);
+                byte[] file = fs.ReadFile(filename);
                 var lvb = new Lvb(new DataBuffer(file, Game.XB2, 0)) { Filename = field.Name };
 
                 string bdatField = field.Name + "_bdat";
@@ -109,60 +106,5 @@ namespace XbTool.Gimmick
                 }
             }
         }
-
-		public static void AssignGimmickCollectionAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, BdatCollection tables, string itemName)
-		{
-			mapInfo.Gimmicks = set;
-
-			foreach (var gmkType in set)
-			{
-				var type = gmkType.Key;
-				if (type != "collection") continue;
-				foreach (var gmk in gmkType.Value.Info)
-				{
-					if (gmk.Name == "") continue;
-					var items = tables.ITM_CollectionList.Where(x => x._Name?.name == itemName);
-					var gormottItem = tables.ma41a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
-					var tornaItem = tables.ma40a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
-					
-					if (gormottItem.Count() > 0 && !(items.Contains(gormottItem.First()._CollectionTable._itm1ID) || items.Contains(gormottItem.First()._CollectionTable._itm2ID) || 
-						items.Contains(gormottItem.First()._CollectionTable._itm3ID) || items.Contains(gormottItem.First()._CollectionTable._itm4ID))) { continue; }
-					if (tornaItem.Count() > 0 && !(items.Contains(tornaItem.First()._CollectionTable._itm1ID) || items.Contains(tornaItem.First()._CollectionTable._itm2ID) || 
-						items.Contains(tornaItem.First()._CollectionTable._itm3ID) || items.Contains(tornaItem.First()._CollectionTable._itm4ID))) { continue; }
-					if (tornaItem.Count() == 0 && gormottItem.Count() == 0) continue;
-
-					MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
-					area?.AddGimmick(gmk, type);
-				}
-			}
-		}
-
-		public static void AssignGimmickEnemyAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, BdatCollection tables, string enemyName)
-		{
-			mapInfo.Gimmicks = set;
-
-			foreach (var gmkType in set)
-			{
-				var type = gmkType.Key;
-				if (type != "enemy") continue;
-				foreach (var gmk in gmkType.Value.Info)
-				{
-					if (gmk.Name == "") continue;
-					var enemies = tables.CHR_EnArrange.Where(x => x._Name?.name == enemyName);
-					var gormottEnemy = tables.ma41a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
-					var tornaEnemy = tables.ma40a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
-
-					if (gormottEnemy.Count() > 0 && !(enemies.Contains(gormottEnemy.First()._ene1ID) || enemies.Contains(gormottEnemy.First()._ene2ID) || 
-						enemies.Contains(gormottEnemy.First()._ene3ID) || enemies.Contains(gormottEnemy.First()._ene4ID))) { continue; }
-					if (tornaEnemy.Count() > 0 && !(enemies.Contains(tornaEnemy.First()._ene1ID) || enemies.Contains(tornaEnemy.First()._ene2ID) ||
-						enemies.Contains(tornaEnemy.First()._ene3ID) || enemies.Contains(tornaEnemy.First()._ene4ID))) { continue; }
-					if (tornaEnemy.Count() == 0 && gormottEnemy.Count() == 0) continue;
-
-					MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
-					area?.AddGimmick(gmk, type);
-
-				}
-			}
-		}
-	}
+    }
 }
