@@ -7,98 +7,94 @@ using XbTool.Xb2.Textures;
 
 namespace XbTool.Common.Textures
 {
-    public static class Decode
-    {
-        public static byte[] ToPng(this ITexture texture)
-        {
-            byte[] image = texture.DecodeTexture();
-            if (image == null) return null;
-            return CreatePng(image, texture.Width, texture.Height);
-        }
+	public static class Decode
+	{
+		public static byte[] ToPng(this ITexture texture)
+		{
+			byte[] image = texture.DecodeTexture();
+			if (image == null) return null;
+			return CreatePng(image, texture.Width, texture.Height);
+		}
 
-        public static Bitmap ToBitmap(this ITexture texture)
-        {
-            byte[] image = texture.DecodeTexture();
-            if (image == null) return null;
-            return ToBitmap(image, texture.Width, texture.Height);
-        }
+		public static Bitmap ToBitmap(this ITexture texture)
+		{
+			byte[] image = texture.DecodeTexture();
+			if (image == null) return null;
+			return ToBitmap(image, texture.Width, texture.Height);
+		}
 
-        public static byte[] DecodeTexture(this ITexture texture)
-        {
-            byte[] decoded = null;
+		public static byte[] DecodeTexture(this ITexture texture)
+		{
+			byte[] decoded = null;
 
-            switch (texture.Format)
-            {
-                case TextureFormat.BC1 when texture is Xbx.Textures.MtxtTexture tex:
-                    Xbx.Textures.Swizzle.Deswizzle(tex, 6);
-                    decoded = Dxt.DecompressDxt1(texture);
-                    break;
-                case TextureFormat.BC1:
-                    Swizzle.Deswizzle(texture, 3);
-                    decoded = Dxt.DecompressDxt1(texture);
-                    break;
-                case TextureFormat.BC3:
-                    Swizzle.Deswizzle(texture, 4);
-                    decoded = Dxt.DecompressDxt5(texture);
-                    break;
-                case TextureFormat.BC4:
-                    Swizzle.Deswizzle(texture, 3);
-                    decoded = Dxt.DecompressDxt4(texture);
-                    break;
-                case TextureFormat.BC6H_UF16:
-                    Swizzle.Deswizzle(texture, 4);
-                    decoded = Dxt.DecompressBc6(texture);
-                    break;
-                case TextureFormat.BC7:
-                    Swizzle.Deswizzle(texture, 4);
-                    decoded = Dxt.DecompressBc7(texture);
-                    break;
-            }
+			switch (texture.Format)
+			{
+				case TextureFormat.BC1:
+					Swizzle.Deswizzle(texture, 3);
+					decoded = Dxt.DecompressDxt1(texture);
+					break;
+				case TextureFormat.BC3:
+					Swizzle.Deswizzle(texture, 4);
+					decoded = Dxt.DecompressDxt5(texture);
+					break;
+				case TextureFormat.BC4:
+					Swizzle.Deswizzle(texture, 3);
+					decoded = Dxt.DecompressDxt4(texture);
+					break;
+				case TextureFormat.BC6H_UF16:
+					Swizzle.Deswizzle(texture, 4);
+					decoded = Dxt.DecompressBc6(texture);
+					break;
+				case TextureFormat.BC7:
+					Swizzle.Deswizzle(texture, 4);
+					decoded = Dxt.DecompressBc7(texture);
+					break;
+			}
 
-            return decoded;
-        }
+			return decoded;
+		}
 
-        public static byte[] CreatePng(byte[] image, int width, int height)
-        {
-            GCHandle gchPixels = GCHandle.Alloc(image, GCHandleType.Pinned);
+		public static byte[] CreatePng(byte[] image, int width, int height)
+		{
+			GCHandle gchPixels = GCHandle.Alloc(image, GCHandleType.Pinned);
 
-            var bitmap = new Bitmap(width, height, width * sizeof(uint),
-                PixelFormat.Format32bppArgb,
-                gchPixels.AddrOfPinnedObject());
+			var bitmap = new Bitmap(width, height, width * sizeof(uint),
+				PixelFormat.Format32bppArgb,
+				gchPixels.AddrOfPinnedObject());
 
-            byte[] png = bitmap.ToPng();
+			byte[] png = bitmap.ToPng();
 
-            gchPixels.Free();
-            return png;
-        }
+			gchPixels.Free();
+			return png;
+		}
 
-        public static Bitmap ToBitmap(byte[] image, int width, int height)
-        {
-            var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+		public static Bitmap ToBitmap(byte[] image, int width, int height)
+		{
+			var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
 
-            var boundsRect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-            BitmapData bmpData = bitmap.LockBits(boundsRect,
-                ImageLockMode.WriteOnly,
-                bitmap.PixelFormat);
+			var boundsRect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+			BitmapData bmpData = bitmap.LockBits(boundsRect,
+				ImageLockMode.WriteOnly,
+				bitmap.PixelFormat);
 
-            IntPtr ptr = bmpData.Scan0;
-            int bytes = bmpData.Stride * bitmap.Height;
-            Marshal.Copy(image, 0, ptr, bytes);
-            bitmap.UnlockBits(bmpData);
+			IntPtr ptr = bmpData.Scan0;
+			int bytes = bmpData.Stride * bitmap.Height;
+			Marshal.Copy(image, 0, ptr, bytes);
+			bitmap.UnlockBits(bmpData);
 
-            return bitmap;
-        }
+			return bitmap;
+		}
 
-        public static byte[] ToPng(this Bitmap bitmap)
-        {
-            byte[] png;
-            using (var stream = new MemoryStream())
-            {
-                bitmap.Save(stream, ImageFormat.Png);
-                png = stream.ToArray();
-            }
+		public static byte[] ToPng(this Bitmap bitmap)
+		{
+			byte[] png;
+			using (var stream = new MemoryStream())
+			{
+				bitmap.Save(stream, ImageFormat.Png);
+				png = stream.ToArray();
+			}
 
-            return png;
-        }
-    }
+			return png;
+		}
+	}
 }

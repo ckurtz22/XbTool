@@ -5,6 +5,11 @@
     <TargetFrameworks>net45;netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+    <OutputPath>../../</OutputPath>
+  </PropertyGroup>
+
+
   <ItemGroup>
     <None Remove="CodeGen\TypeNames.txt" />
     <None Remove="Serialization\TypeMap.txt" />
@@ -25,8 +30,17 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <None Update="Data\*.csv" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\bdat\*.bdat" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\gmk\*.lvb" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\menu\image\*.wilay" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\menu\minimap\*.seg" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\menu\minimap\*.mi" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
   </ItemGroup>
 
 </Project>

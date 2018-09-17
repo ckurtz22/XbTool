@@ -11302,10 +11302,10 @@ namespace XbTool.Serialization
             foreach (FLD_CollectionTable item in tables.FLD_CollectionTable.Items)
             {
                 item._FSID = tables.FLD_FieldSkillList.GetItemOrNull(item.FSID);
-                item._itm1ID = tables.GetItem(item.itm1ID);
-                item._itm2ID = tables.GetItem(item.itm2ID);
-                item._itm3ID = tables.GetItem(item.itm3ID);
-                item._itm4ID = tables.GetItem(item.itm4ID);
+                item._itm1ID = tables.ITM_CollectionList.GetItemOrNull(item.itm1ID);
+                item._itm2ID = tables.ITM_CollectionList.GetItemOrNull(item.itm2ID);
+                item._itm3ID = tables.ITM_CollectionList.GetItemOrNull(item.itm3ID);
+                item._itm4ID = tables.ITM_CollectionList.GetItemOrNull(item.itm4ID);
             }
 
             foreach (FLD_ConditionAchievement item in tables.FLD_ConditionAchievement.Items)
@@ -13797,6 +13797,7 @@ namespace XbTool.Serialization
 
             foreach (ma40a_FLD_CollectionPopList item in tables.ma40a_FLD_CollectionPopList.Items)
             {
+                item._CollectionTable = tables.FLD_CollectionTable.GetItemOrNull(item.CollectionTable);
                 item._Condition = tables.FLD_ConditionList.GetItemOrNull(item.Condition);
                 item._POP_TIME = (TimeRange)item.POP_TIME;
             }
@@ -13889,6 +13890,7 @@ namespace XbTool.Serialization
 
             foreach (ma41a_FLD_CollectionPopList item in tables.ma41a_FLD_CollectionPopList.Items)
             {
+                item._CollectionTable = tables.FLD_CollectionTable.GetItemOrNull(item.CollectionTable);
                 item._Condition = tables.FLD_ConditionList.GetItemOrNull(item.Condition);
                 item._POP_TIME = (TimeRange)item.POP_TIME;
             }
