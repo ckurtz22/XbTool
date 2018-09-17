@@ -9,13 +9,13 @@ namespace XbTool.Gimmick
 {
     public static class ReadGmk
     {
-        public static MapInfo[] ReadAll(BdatCollection tables, Options options, IProgressReport progress = null)
+        public static MapInfo[] ReadAll(Options options, IProgressReport progress = null)
         {
             progress?.LogMessage("Reading map info and gimmick sets");
             Dictionary<string, MapInfo> maps = MapInfo.ReadAll($"{options.DataDir}/menu/minimap");
 
-            var mapList = tables.FLD_maplist;
-            var areaList = tables.MNU_MapInfo;
+            var mapList = options.Tables.FLD_maplist;
+            var areaList = options.Tables.MNU_MapInfo;
 
             foreach (MapInfo mapInfo in maps.Values)
             {
@@ -57,11 +57,11 @@ namespace XbTool.Gimmick
                     if (area._disp_name?.name != null) areaInfo.DisplayName = area._disp_name.name;
                 }
 
-                var gimmickSet = ReadGimmickSet($"{options.DataDir}/gmk", tables, map.Id);
+                var gimmickSet = ReadGimmickSet($"{options.DataDir}/gmk", options.Tables, map.Id);
 				//AssignGimmickAreas(gimmickSet, mapInfo);
-				//AssignGimmickCollectionAreas(gimmickSet, mapInfo, tables, options.Filter);
-				//AssignGimmickEnemyAreas(gimmickSet, mapInfo, tables, options.Filter);
-				AssignGimmickNpcAreas(gimmickSet, mapInfo, tables, options.Filter);
+				//AssignGimmickCollectionAreas(gimmickSet, mapInfo, options);
+				//AssignGimmickEnemyAreas(gimmickSet, mapInfo, options);
+				AssignGimmickNpcAreas(gimmickSet, mapInfo, options);
 			}
 
 			return maps.Values.ToArray();
@@ -111,7 +111,7 @@ namespace XbTool.Gimmick
             }
         }
 
-		public static void AssignGimmickCollectionAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, BdatCollection tables, string itemName)
+		public static void AssignGimmickCollectionAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, Options options)
 		{
 			mapInfo.Gimmicks = set;
 
@@ -122,9 +122,9 @@ namespace XbTool.Gimmick
 				foreach (var gmk in gmkType.Value.Info)
 				{
 					if (gmk.Name == "") continue;
-					var items = tables.ITM_CollectionList.Where(x => x._Name?.name == itemName);
-					var gormottItem = tables.ma41a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
-					var tornaItem = tables.ma40a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
+					var items = options.Tables.ITM_CollectionList.Where(x => x._Name?.name == options.Filter);
+					var gormottItem = options.Tables.ma41a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
+					var tornaItem = options.Tables.ma40a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
 					
 					if (gormottItem.Count() > 0 && !(items.Contains(gormottItem.First()._CollectionTable._itm1ID) || items.Contains(gormottItem.First()._CollectionTable._itm2ID) || 
 						items.Contains(gormottItem.First()._CollectionTable._itm3ID) || items.Contains(gormottItem.First()._CollectionTable._itm4ID))) { continue; }
@@ -138,7 +138,7 @@ namespace XbTool.Gimmick
 			}
 		}
 
-		public static void AssignGimmickEnemyAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, BdatCollection tables, string enemyName)
+		public static void AssignGimmickEnemyAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, Options options)
 		{
 			mapInfo.Gimmicks = set;
 
@@ -149,9 +149,9 @@ namespace XbTool.Gimmick
 				foreach (var gmk in gmkType.Value.Info)
 				{
 					if (gmk.Name == "") continue;
-					var enemies = tables.CHR_EnArrange.Where(x => x._Name?.name == enemyName);
-					var gormottEnemy = tables.ma41a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
-					var tornaEnemy = tables.ma40a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
+					var enemies = options.Tables.CHR_EnArrange.Where(x => x._Name?.name == options.Filter);
+					var gormottEnemy = options.Tables.ma41a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
+					var tornaEnemy = options.Tables.ma40a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
 
 					if (gormottEnemy.Count() > 0 && !(enemies.Contains(gormottEnemy.First()._ene1ID) || enemies.Contains(gormottEnemy.First()._ene2ID) || 
 						enemies.Contains(gormottEnemy.First()._ene3ID) || enemies.Contains(gormottEnemy.First()._ene4ID))) { continue; }
@@ -166,7 +166,7 @@ namespace XbTool.Gimmick
 			}
 		}
 
-		public static void AssignGimmickNpcAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, BdatCollection tables, string npcName)
+		public static void AssignGimmickNpcAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, Options options)
 		{
 			mapInfo.Gimmicks = set;
 
@@ -177,9 +177,9 @@ namespace XbTool.Gimmick
 				foreach (var gmk in gmkType.Value.Info)
 				{
 					if (gmk.Name == "") continue;
-					var enemies = tables.RSC_NpcList.Where(x => x._Name?.name == npcName);
-					var gormottNpc = tables.ma41a_FLD_NpcPop.Where(x => x.name == gmk.Name);
-					var tornaNpc = tables.ma40a_FLD_NpcPop.Where(x => x.name == gmk.Name);
+					var enemies = options.Tables.RSC_NpcList.Where(x => x._Name?.name == options.Filter);
+					var gormottNpc = options.Tables.ma41a_FLD_NpcPop.Where(x => x.name == gmk.Name);
+					var tornaNpc = options.Tables.ma40a_FLD_NpcPop.Where(x => x.name == gmk.Name);
 
 					if (gormottNpc.Count() > 0 && !enemies.Contains(gormottNpc.First()._NpcID)) { continue; }
 					if (tornaNpc.Count() > 0 && !enemies.Contains(tornaNpc.First()._NpcID)) { continue; }
@@ -190,6 +190,13 @@ namespace XbTool.Gimmick
 
 				}
 			}
+		}
+
+		private static bool isItemGmk(InfoEntry gmk, Options options)
+		{
+
+
+			return true;
 		}
 	}
 }

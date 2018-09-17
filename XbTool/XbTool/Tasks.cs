@@ -34,13 +34,18 @@ namespace XbTool
 
 		private static void ReadGimmick(Options options)
 		{
-			BdatCollection tables = GetBdatCollection(options);
-			var items = File.ReadAllLines($"{options.DataDir}/../npcs.txt");
-			foreach (string name in items)
+			options.Tables = GetBdatCollection(options);
+
+			foreach (string type in Gimmick.Types.GimmickFieldNames)
 			{
-				options.Filter = name;
-				var gimmicks = ReadGmk.ReadAll(tables, options);
-				ExportMap.Export(options, gimmicks);
+				if (File.Exists($"{options.DataDir}/../{type}.txt")) ;
+				var items = File.ReadAllLines($"{options.DataDir}/../npcs.txt");
+				foreach (string name in items)
+				{
+					options.Filter = name;
+					var gimmicks = ReadGmk.ReadAll(options);
+					ExportMap.Export(options, gimmicks);
+				}
 			}
 			//ExportMap.ExportCsv(gimmicks, options.Output);
 		}

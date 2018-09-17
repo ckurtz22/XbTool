@@ -1,4 +1,5 @@
 ﻿using XbTool.Common;
+using XbTool.Types;
 
 namespace XbTool
 {
@@ -12,6 +13,7 @@ namespace XbTool
         public string Output { get; set; }
         public string Filter { get; set; }
         public string Xb2Dir { get; set; }
+		public BdatCollection Tables { get; set; }
         public IProgressReport Progress { get; set; }
     }
 
