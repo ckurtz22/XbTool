@@ -124,21 +124,11 @@ namespace XbTool.Gimmick
 					var items = tables.ITM_CollectionList.Where(x => x._Name?.name == itemName);
 					var gormottItem = tables.ma41a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
 					var tornaItem = tables.ma40a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
-					/*
+					
 					if (gormottItem.Count() > 0 && !(items.Contains(gormottItem.First()._CollectionTable._itm1ID) || items.Contains(gormottItem.First()._CollectionTable._itm2ID) || 
 						items.Contains(gormottItem.First()._CollectionTable._itm3ID) || items.Contains(gormottItem.First()._CollectionTable._itm4ID))) { continue; }
 					if (tornaItem.Count() > 0 && !(items.Contains(tornaItem.First()._CollectionTable._itm1ID) || items.Contains(tornaItem.First()._CollectionTable._itm2ID) || 
 						items.Contains(tornaItem.First()._CollectionTable._itm3ID) || items.Contains(tornaItem.First()._CollectionTable._itm4ID))) { continue; }
-					if (tornaItem.Count() == 0 && gormottItem.Count() == 0) continue;*/
-
-					if (gormottItem.Count() > 0 && gormottItem.First()._CollectionTable._itm1ID?._Category.name != "Enemy Drop" &&
-						gormottItem.First()._CollectionTable._itm2ID?._Category.name != "Enemy Drop" &&
-						gormottItem.First()._CollectionTable._itm3ID?._Category.name != "Enemy Drop" &&
-						gormottItem.First()._CollectionTable._itm4ID?._Category.name != "Enemy Drop") continue;
-					if (tornaItem.Count() > 0 && tornaItem.First()._CollectionTable._itm1ID?._Category.name != "Enemy Drop" &&
-						tornaItem.First()._CollectionTable._itm2ID?._Category.name != "Enemy Drop" &&
-						tornaItem.First()._CollectionTable._itm3ID?._Category.name != "Enemy Drop" &&
-						tornaItem.First()._CollectionTable._itm4ID?._Category.name != "Enemy Drop") continue;
 					if (tornaItem.Count() == 0 && gormottItem.Count() == 0) continue;
 
 					MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
