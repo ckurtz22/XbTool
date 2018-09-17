@@ -153,7 +153,7 @@ namespace XbTool
 
         private static BdatTables ReadBdatTables(Options options, bool readMetadata)
         {
-            if (options.Game == Game.XB2 && options.ArdFilename != null)
+            if (options.Game == Game.XB2 && options.ArdFilename != null && options.BdatDir == null)
             {
                 using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
                 {

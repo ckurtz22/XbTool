@@ -4105,10 +4105,10 @@ namespace XbTool.Types
         public ushort categoryName;
         public ushort ZoneID;
         public FLD_FieldSkillList _FSID;
-        public object _itm1ID;
-        public object _itm2ID;
-        public object _itm3ID;
-        public object _itm4ID;
+        public ITM_CollectionList _itm1ID;
+        public ITM_CollectionList _itm2ID;
+        public ITM_CollectionList _itm3ID;
+        public ITM_CollectionList _itm4ID;
     }
 
     [BdatType]
@@ -7539,6 +7539,7 @@ namespace XbTool.Types
         public float initWaitTimeRand;
         public byte rarity;
         public ushort menuMapImage;
+        public FLD_CollectionTable _CollectionTable;
         public FLD_ConditionList _Condition;
         public TimeRange _POP_TIME;
     }
@@ -7783,6 +7784,7 @@ namespace XbTool.Types
         public float initWaitTime;
         public float initWaitTimeRand;
         public byte rarity;
+        public FLD_CollectionTable _CollectionTable;
         public FLD_ConditionList _Condition;
         public TimeRange _POP_TIME;
     }
