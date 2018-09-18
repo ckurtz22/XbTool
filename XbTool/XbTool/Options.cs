@@ -11,7 +11,8 @@ namespace XbTool
         public string DataDir { get; set; }
         public string Input { get; set; }
         public string Output { get; set; }
-        public string Filter { get; set; }
+        public string Name { get; set; }
+		public string Type { get; set; }
         public string Xb2Dir { get; set; }
 		public BdatCollection Tables { get; set; }
         public IProgressReport Progress { get; set; }

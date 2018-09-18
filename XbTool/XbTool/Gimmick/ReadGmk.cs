@@ -58,10 +58,7 @@ namespace XbTool.Gimmick
                 }
 
                 var gimmickSet = ReadGimmickSet($"{options.DataDir}/gmk", options.Tables, map.Id);
-				//AssignGimmickAreas(gimmickSet, mapInfo);
-				//AssignGimmickCollectionAreas(gimmickSet, mapInfo, options);
-				//AssignGimmickEnemyAreas(gimmickSet, mapInfo, options);
-				AssignGimmickNpcAreas(gimmickSet, mapInfo, options);
+				AssignGimmickAreas(gimmickSet, mapInfo, options);
 			}
 
 			return maps.Values.ToArray();
@@ -97,106 +94,64 @@ namespace XbTool.Gimmick
             return gimmicks;
         }
 
-        public static void AssignGimmickAreas(Dictionary<string, Lvb> set, MapInfo mapInfo)
+        public static void AssignGimmickAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, Options options)
         {
             mapInfo.Gimmicks = set;
             foreach (var gmkType in set)
             {
                 var type = gmkType.Key;
+				if (options.Type != "all" && options.Type != type) continue;
                 foreach (var gmk in gmkType.Value.Info)
                 {
+					if (!isValidGmk(gmk, options)) continue;
                     MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
                     area?.AddGimmick(gmk, type);
                 }
             }
         }
 
-		public static void AssignGimmickCollectionAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, Options options)
+		private static bool isValidGmk(InfoEntry gmk, Options options)
 		{
-			mapInfo.Gimmicks = set;
-
-			foreach (var gmkType in set)
+			if (gmk.Name == "") return false;
+			switch (options.Type)
 			{
-				var type = gmkType.Key;
-				if (type != "collection") continue;
-				foreach (var gmk in gmkType.Value.Info)
-				{
-					if (gmk.Name == "") continue;
-					var items = options.Tables.ITM_CollectionList.Where(x => x._Name?.name == options.Filter);
+				case "collection":
+					var items = options.Tables.ITM_CollectionList.Where(x => x._Name?.name == options.Name);
 					var gormottItem = options.Tables.ma41a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
 					var tornaItem = options.Tables.ma40a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
-					
-					if (gormottItem.Count() > 0 && !(items.Contains(gormottItem.First()._CollectionTable._itm1ID) || items.Contains(gormottItem.First()._CollectionTable._itm2ID) || 
-						items.Contains(gormottItem.First()._CollectionTable._itm3ID) || items.Contains(gormottItem.First()._CollectionTable._itm4ID))) { continue; }
-					if (tornaItem.Count() > 0 && !(items.Contains(tornaItem.First()._CollectionTable._itm1ID) || items.Contains(tornaItem.First()._CollectionTable._itm2ID) || 
-						items.Contains(tornaItem.First()._CollectionTable._itm3ID) || items.Contains(tornaItem.First()._CollectionTable._itm4ID))) { continue; }
-					if (tornaItem.Count() == 0 && gormottItem.Count() == 0) continue;
 
-					MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
-					area?.AddGimmick(gmk, type);
-				}
-			}
-		}
-
-		public static void AssignGimmickEnemyAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, Options options)
-		{
-			mapInfo.Gimmicks = set;
-
-			foreach (var gmkType in set)
-			{
-				var type = gmkType.Key;
-				if (type != "enemy") continue;
-				foreach (var gmk in gmkType.Value.Info)
-				{
-					if (gmk.Name == "") continue;
-					var enemies = options.Tables.CHR_EnArrange.Where(x => x._Name?.name == options.Filter);
+					if (gormottItem.Count() > 0 && !(items.Contains(gormottItem.First()._CollectionTable._itm1ID) || items.Contains(gormottItem.First()._CollectionTable._itm2ID) ||
+						items.Contains(gormottItem.First()._CollectionTable._itm3ID) || items.Contains(gormottItem.First()._CollectionTable._itm4ID))) { return false; }
+					if (tornaItem.Count() > 0 && !(items.Contains(tornaItem.First()._CollectionTable._itm1ID) || items.Contains(tornaItem.First()._CollectionTable._itm2ID) ||
+						items.Contains(tornaItem.First()._CollectionTable._itm3ID) || items.Contains(tornaItem.First()._CollectionTable._itm4ID))) { return false; }
+					if (tornaItem.Count() == 0 && gormottItem.Count() == 0) return false;
+					return true;
+				case "enemy":
+					var enemies = options.Tables.CHR_EnArrange.Where(x => x._Name?.name == options.Name);
 					var gormottEnemy = options.Tables.ma41a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
 					var tornaEnemy = options.Tables.ma40a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
 
-					if (gormottEnemy.Count() > 0 && !(enemies.Contains(gormottEnemy.First()._ene1ID) || enemies.Contains(gormottEnemy.First()._ene2ID) || 
-						enemies.Contains(gormottEnemy.First()._ene3ID) || enemies.Contains(gormottEnemy.First()._ene4ID))) { continue; }
+					if (gormottEnemy.Count() > 0 && !(enemies.Contains(gormottEnemy.First()._ene1ID) || enemies.Contains(gormottEnemy.First()._ene2ID) ||
+						enemies.Contains(gormottEnemy.First()._ene3ID) || enemies.Contains(gormottEnemy.First()._ene4ID))) { return false; }
 					if (tornaEnemy.Count() > 0 && !(enemies.Contains(tornaEnemy.First()._ene1ID) || enemies.Contains(tornaEnemy.First()._ene2ID) ||
-						enemies.Contains(tornaEnemy.First()._ene3ID) || enemies.Contains(tornaEnemy.First()._ene4ID))) { continue; }
-					if (tornaEnemy.Count() == 0 && gormottEnemy.Count() == 0) continue;
-
-					MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
-					area?.AddGimmick(gmk, type);
-
-				}
-			}
-		}
-
-		public static void AssignGimmickNpcAreas(Dictionary<string, Lvb> set, MapInfo mapInfo, Options options)
-		{
-			mapInfo.Gimmicks = set;
-
-			foreach (var gmkType in set)
-			{
-				var type = gmkType.Key;
-				if (type != "npc") continue;
-				foreach (var gmk in gmkType.Value.Info)
-				{
-					if (gmk.Name == "") continue;
-					var enemies = options.Tables.RSC_NpcList.Where(x => x._Name?.name == options.Filter);
+						enemies.Contains(tornaEnemy.First()._ene3ID) || enemies.Contains(tornaEnemy.First()._ene4ID))) { return false; }
+					if (tornaEnemy.Count() == 0 && gormottEnemy.Count() == 0) return false;
+					return true;
+				case "npc":
+					var npcs = options.Tables.RSC_NpcList.Where(x => x._Name?.name == options.Name);
 					var gormottNpc = options.Tables.ma41a_FLD_NpcPop.Where(x => x.name == gmk.Name);
 					var tornaNpc = options.Tables.ma40a_FLD_NpcPop.Where(x => x.name == gmk.Name);
 
-					if (gormottNpc.Count() > 0 && !enemies.Contains(gormottNpc.First()._NpcID)) { continue; }
-					if (tornaNpc.Count() > 0 && !enemies.Contains(tornaNpc.First()._NpcID)) { continue; }
-					if (tornaNpc.Count() == 0 && gormottNpc.Count() == 0) continue;
-
-					MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
-					area?.AddGimmick(gmk, type);
-
-				}
+					if (gormottNpc.Count() > 0 && !npcs.Contains(gormottNpc.First()._NpcID)) { return false; }
+					if (tornaNpc.Count() > 0 && !npcs.Contains(tornaNpc.First()._NpcID)) { return false; }
+					if (tornaNpc.Count() == 0 && gormottNpc.Count() == 0) return false;
+					return true;
+				case "all":
+					return true;
+				default:
+					return false;
 			}
-		}
-
-		private static bool isItemGmk(InfoEntry gmk, Options options)
-		{
-
-
-			return true;
+		
 		}
 	}
 }

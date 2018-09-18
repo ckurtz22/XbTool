@@ -92,9 +92,9 @@ namespace XbTool.Gimmick
                         }
 						if (count == 0) continue;
                         var png = bitmap.ToPng();
-						Directory.CreateDirectory(Path.Combine(options.Output, $"{options.Filter}/"));
+						Directory.CreateDirectory(Path.Combine(options.Output, $"{options.Name}/"));
 						File.WriteAllBytes(Path.Combine(options.Output, 
-							$"{options.Filter}/{map.DisplayName} - {(area.DisplayName.Substring(0,5) == "ma40a" ? area.DisplayName : area.Name)}.png"), png);
+							$"{options.Name}/{map.DisplayName} - {(area.DisplayName.Substring(0,5) == "ma40a" ? area.DisplayName : area.Name)}.png"), png);
                     }
                 }
             }

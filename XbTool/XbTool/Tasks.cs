@@ -38,11 +38,12 @@ namespace XbTool
 
 			foreach (string type in Gimmick.Types.GimmickFieldNames)
 			{
-				if (File.Exists($"{options.DataDir}/../{type}.txt")) ;
-				var items = File.ReadAllLines($"{options.DataDir}/../npcs.txt");
-				foreach (string name in items)
+				if (!File.Exists($"{options.DataDir}/../{type}.txt")) continue;
+				var names = File.ReadAllLines($"{options.DataDir}/../{type}.txt");
+				options.Type = type;
+				foreach (string name in names)
 				{
-					options.Filter = name;
+					options.Name = name;
 					var gimmicks = ReadGmk.ReadAll(options);
 					ExportMap.Export(options, gimmicks);
 				}
