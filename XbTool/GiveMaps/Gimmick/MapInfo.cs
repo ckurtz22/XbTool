@@ -56,15 +56,15 @@ namespace XbTool.Gimmick
             return containingArea;
         }
 
-        public static Dictionary<string, MapInfo> ReadAll(IFileReader fs)
+        public static Dictionary<string, MapInfo> ReadAll(string mapDir)
         {
             var infos = new Dictionary<string, MapInfo>();
-            var filenames = fs.FindFiles("/menu/minimap/*.mi");
+			string[] filenames = Directory.GetFiles(mapDir, "*.mi");
 
             foreach (string filename in filenames)
             {
                 if (filename == null) continue;
-                byte[] file = fs.ReadFile(filename);
+                byte[] file = File.ReadAllBytes(filename);
                 var info = new MapInfo(new DataBuffer(file, Game.XB2, 0))
                 {
                     Name = Path.GetFileNameWithoutExtension(filename)
@@ -78,7 +78,7 @@ namespace XbTool.Gimmick
                 foreach (var area in map.Areas)
                 {
                     var name = area.Name;
-                    var file = fs.ReadFile($"/menu/minimap/{name}_map.seg");
+                    var file = File.ReadAllBytes($"{mapDir}/{name}_map.seg");
                     area.SegmentInfo = new MapSegmentInfo(new DataBuffer(file, Game.XB2, 0));
                 }
             }
