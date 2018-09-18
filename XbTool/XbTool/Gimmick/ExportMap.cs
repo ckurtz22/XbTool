@@ -1,9 +1,13 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Text;
 using XbTool.Common.Textures;
+using XbTool.Types;
 using XbTool.Xb2.Textures;
 using static XbTool.Program;
 
@@ -49,10 +53,14 @@ namespace XbTool.Gimmick
 
                     var outerBrush = new SolidBrush(System.Drawing.Color.Black);
                     //var backing = new SolidBrush(System.Drawing.Color.White);
-                    var innerBrush = new SolidBrush(System.Drawing.Color.GreenYellow);
+                    var innerBrush = new SolidBrush(System.Drawing.Color.LightBlue);
                     Pen pen = new Pen(outerBrush, 1 * scale);
+					var circleSize = 15;
+					Font font = new Font("Times New Roman", 10);
+					var textBrush = new SolidBrush(System.Drawing.Color.Black);
 
-                    bitmapBase.RotateFlip(RotateFlipType.Rotate180FlipNone);
+
+					bitmapBase.RotateFlip(RotateFlipType.Rotate180FlipNone);
 
                     foreach (var gmkType in area.Gimmicks)
                     {
@@ -60,37 +68,63 @@ namespace XbTool.Gimmick
                         //if (type != "precious") continue;
                         var bitmap = (Bitmap)bitmapBase.Clone();
 						int count = 0;
+						var collTables = new List<FLD_CollectionTable>(); 
                         using (Graphics graphics = Graphics.FromImage(bitmap))
                         {
                             foreach (InfoEntry gmk in gmkType.Value)
                             {
 								count++;
 								var point = area.Get2DPosition(gmk.Xfrm.Position);
-                                graphics.FillCircle(innerBrush, point.X * scale, point.Y * scale, 8 * scale);
-                                graphics.DrawCircle(pen, point.X * scale, point.Y * scale, 8 * scale);
+
+								var posx = point.X * scale;
+								var posy = point.Y * scale;
+
+                                graphics.FillCircle(innerBrush, posx, posy, circleSize * scale);
+                                graphics.DrawCircle(pen, point.X * scale, point.Y * scale, circleSize * scale);
+								if (type == "collection")
+								{
+									var gmkTable = getTable(map.Name, options, gmk);
+									if (!collTables.Contains(gmkTable)) collTables.Add(gmkTable);
+									var test1 = font.Size;
+									var test2 = font.SizeInPoints;
+									graphics.DrawString(gmkTable.Id.ToString("000"), font, textBrush, new RectangleF(posx - font.Size, posy - font.Size * 3 / 4, font.Size * 3, font.Size * 1.5f));
+									//graphics.DrawRectangle(pen, posx - font.Size * 1.5f, posy - font.Size * 3 /4, font.Size * 3, font.Size * 1.5f);
+								}
                             }
-                            //foreach (InfoEntry gmk in gmkType.Value)
-                            //{
-                            //    //if (gmk.String != "landmark_ma02a_101") continue;
-                            //    var point = area.Get2DPosition(gmk.Xfrm.Position);
-                            //    var pointS = area.Get2DPosition(gmk.Xfrm.Scale);
-                            //    //graphics.FillCircle(innerBrush, point.X * scale, point.Y * scale, 5 * scale);
-                            //    //DrawEllipse(graphics, pen, point.X * scale, point.Y * scale, pointS.X / 2 * scale, pointS.Y / 2 * scale);
-                            //    DrawRect(graphics, pen, point.X * scale, point.Y * scale, pointS.X / 2 * scale, pointS.Y / 2 * scale);
-                            //    //graphics.DrawCircle(pen, point.X * scale, point.Y * scale, 5 * scale);
-                            //}
+							//foreach (InfoEntry gmk in gmkType.Value)
+							//{
+							//    //if (gmk.String != "landmark_ma02a_101") continue;
+							//    var point = area.Get2DPosition(gmk.Xfrm.Position);
+							//    var pointS = area.Get2DPosition(gmk.Xfrm.Scale);
+							//    //graphics.FillCircle(innerBrush, point.X * scale, point.Y * scale, 5 * scale);
+							//    //DrawEllipse(graphics, pen, point.X * scale, point.Y * scale, pointS.X / 2 * scale, pointS.Y / 2 * scale);
+							//    DrawRect(graphics, pen, point.X * scale, point.Y * scale, pointS.X / 2 * scale, pointS.Y / 2 * scale);
+							//    //graphics.DrawCircle(pen, point.X * scale, point.Y * scale, 5 * scale);
+							//}
 
-                            //foreach (InfoEntry gmk in gmkType.Value)
-                            //{
-                            //    //var text = gmk.String.Split('_').Last();
-                            //    var text = gmk.Type.ToString();
-                            //    var point = area.Get2DPosition(gmk.Xfrm.Position);
+							//foreach (InfoEntry gmk in gmkType.Value)
+							//{
+							//    //var text = gmk.String.Split('_').Last();
+							//    var text = gmk.Type.ToString();
+							//    var point = area.Get2DPosition(gmk.Xfrm.Position);
 
-                            //    //graphics.FillRectangle(backing, point.X * scale, point.Y * scale, 30 * scale, 12 * scale);
-                            //    graphics.FillRectangle(backing, point.X * scale, point.Y * scale, 12 * scale, 12 * scale);
-                            //    graphics.DrawString(text, new Font("Arial", 8 * scale), outerBrush, point.X * scale, point.Y * scale);
-                            //}
-                        }
+							//    //graphics.FillRectangle(backing, point.X * scale, point.Y * scale, 30 * scale, 12 * scale);
+							//    graphics.FillRectangle(backing, point.X * scale, point.Y * scale, 12 * scale, 12 * scale);
+							//    graphics.DrawString(text, new Font("Arial", 8 * scale), outerBrush, point.X * scale, point.Y * scale);
+							//}
+
+							int row = 0, x_off = 20, y_off = 20;
+							Font tableFont = new Font("Times New Roman", 16);
+							SolidBrush tableBrush = new SolidBrush(System.Drawing.Color.White);
+							graphics.DrawString($"{options.Name}", tableFont, tableBrush, x_off, y_off + row++ * tableFont.Size * 1.2f);
+
+							foreach (var collTable in collTables)
+							{
+								graphics.DrawString($"{collTable.Id.ToString("000")}\t{getItemRarity(collTable,options.Name)}%\t{collTable.randitmPopMin}-{collTable.randitmPopMax} items", 
+									tableFont, tableBrush, x_off, y_off + row++ * tableFont.Size * 1.2f);
+							}
+						}
+
 						if (count == 0) continue;
                         var png = bitmap.ToPng();
 						Directory.CreateDirectory(Path.Combine(options.Output, $"{options.Name}/"));
@@ -101,7 +135,28 @@ namespace XbTool.Gimmick
             }
         }
 
-        public static void ExportCsv(MapInfo[] gimmicks, string outDir)
+		private static string getItemRarity(FLD_CollectionTable collTable, string name)
+		{
+			if (collTable._itm1ID._Name.name == name) return collTable.itm1Per.ToString();
+			if (collTable._itm2ID._Name.name == name) return collTable.itm2Per.ToString();
+			if (collTable._itm3ID._Name.name == name) return collTable.itm3Per.ToString();
+			if (collTable._itm4ID._Name.name == name) return collTable.itm4Per.ToString();
+			return "N/A";
+		}
+
+		private static FLD_CollectionTable getTable(string name, Options options, InfoEntry gmk)
+		{
+			switch (name)
+			{
+				case "ma40a":
+					return options.Tables.ma40a_FLD_CollectionPopList.Where(x => x.name == gmk.Name).First()._CollectionTable;
+				case "ma41a":
+					return options.Tables.ma41a_FLD_CollectionPopList.Where(x => x.name == gmk.Name).First()._CollectionTable;
+			}
+			return null;
+		}
+
+		public static void ExportCsv(MapInfo[] gimmicks, string outDir)
         {
             Directory.CreateDirectory(Path.Combine(outDir, "mi"));
             Directory.CreateDirectory(Path.Combine(outDir, "gmk"));
