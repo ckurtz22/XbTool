@@ -1,8 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
+using XbTool.Bdat;
+using XbTool.Common;
+using XbTool.Gimmick;
+using XbTool.Serialization;
+using XbTool.Types;
 
 namespace XbTool
 {
@@ -10,31 +13,53 @@ namespace XbTool
     {
         public static void Main(string[] args)
         {
-			Options options = new Options();
-			options.Game = Common.Game.XB2;
-			options.DataDir = Directory.GetCurrentDirectory() + "/Data";
-			options.Output = Directory.GetCurrentDirectory() + "/Maps";
-            Tasks.RunTask(options);
+			Options options = new Options
+			{
+				Game = Common.Game.XB2,
+				DataDir = Directory.GetCurrentDirectory() + "/Data",
+				Output = Directory.GetCurrentDirectory() + "/Maps"
+			};
+			ReadGimmick(options);
         }
-    }
+
+		public class Options
+		{
+			public Game Game { get; set; }
+			public string DataDir { get; set; }
+			public string Input { get; set; }
+			public string Output { get; set; }
+			public string Name { get; set; }
+			public string Type { get; set; }
+			public BdatCollection Tables { get; set; }
+		}
+
+		private static void ReadGimmick(Options options)
+		{
+			string[] filenames = Directory.GetFiles($"{options.DataDir}/bdat", "*");
+			BdatTables bdats = new BdatTables(filenames, options.Game, false);
+			options.Tables = Deserialize.DeserializeTables(bdats);
+
+			foreach (string type in Gimmick.Types.GimmickFieldNames)
+			{
+				if (!File.Exists($"{options.DataDir}/../{type}.txt")) continue;
+				var names = File.ReadAllLines($"{options.DataDir}/../{type}.txt");
+				options.Type = type;
+				foreach (string name in names)
+				{
+					options.Name = name;
+					var gimmicks = ReadGmk.ReadAll(options);
+					ExportMap.Export(options, gimmicks);
+				}
+			}
+			//ExportMap.ExportCsv(gimmicks, options.Output);
+		}
+	}
+
+
+
 
     public static class Stuff
     {
-        public static string ReadUTF8Z(this BinaryReader reader)
-        {
-            var start = reader.BaseStream.Position;
-
-            // Read until we hit the end of the stream (-1) or a zero
-            while (reader.BaseStream.ReadByte() - 1 > 0) { }
-
-            int size = (int)(reader.BaseStream.Position - start - 1);
-            reader.BaseStream.Position = start;
-
-            string text = reader.ReadUTF8(size);
-            reader.BaseStream.Position++; // Skip the null byte
-            return text;
-        }
-
         public static string ReadUTF8(this BinaryReader reader, int size)
         {
             return Encoding.UTF8.GetString(reader.ReadBytes(size), 0, size);
