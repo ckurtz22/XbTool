@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace XbTool.Common
+namespace GiveMaps.Common
 {
     public static class EnumExtensions
     {

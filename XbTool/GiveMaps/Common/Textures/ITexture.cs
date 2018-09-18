@@ -1,4 +1,4 @@
-﻿namespace XbTool.Common.Textures
+﻿namespace GiveMaps.Common.Textures
 {
     public interface ITexture
     {

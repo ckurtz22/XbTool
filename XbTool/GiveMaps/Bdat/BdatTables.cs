@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using XbTool.CodeGen;
-using XbTool.Common;
+using GiveMaps.CodeGen;
+using GiveMaps.Common;
 
-namespace XbTool.Bdat
+namespace GiveMaps.Bdat
 {
     public class BdatTables
     {

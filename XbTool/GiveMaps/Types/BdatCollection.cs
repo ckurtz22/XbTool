@@ -3,9 +3,9 @@
 // ReSharper disable UnusedMember.Global
 
 using System;
-using XbTool.Bdat;
+using GiveMaps.Bdat;
 
-namespace XbTool.Types
+namespace GiveMaps.Types
 {
     [Serializable]
     public partial class BdatCollection

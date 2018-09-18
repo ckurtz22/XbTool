@@ -1,13 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using XbTool.Bdat;
-using XbTool.Common;
-using XbTool.Gimmick;
-using XbTool.Serialization;
-using XbTool.Types;
+using GiveMaps.Bdat;
+using GiveMaps.Common;
+using GiveMaps.Gimmick;
+using GiveMaps.Serialization;
+using GiveMaps.Types;
 
-namespace XbTool
+namespace GiveMaps
 {
     public static class Program
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace XbTool.Common
+namespace GiveMaps.Common
 {
     public class DataBuffer
     {

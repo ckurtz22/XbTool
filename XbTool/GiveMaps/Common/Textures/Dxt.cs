@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XbTool.Common.Textures
+namespace GiveMaps.Common.Textures
 {
     public static class Dxt
     {

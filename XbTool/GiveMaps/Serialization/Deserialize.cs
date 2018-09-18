@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using XbTool.Bdat;
-using XbTool.Common;
-using XbTool.Types;
+using GiveMaps.Bdat;
+using GiveMaps.Common;
+using GiveMaps.Types;
 
-namespace XbTool.Serialization
+namespace GiveMaps.Serialization
 {
     public static class Deserialize
     {

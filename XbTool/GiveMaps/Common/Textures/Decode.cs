@@ -3,9 +3,9 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
-using XbTool.Xb2.Textures;
+using GiveMaps.Xb2.Textures;
 
-namespace XbTool.Common.Textures
+namespace GiveMaps.Common.Textures
 {
 	public static class Decode
 	{

@@ -3,7 +3,7 @@
 
 using System;
 
-namespace XbTool.Types
+namespace GiveMaps.Types
 {
     public enum ConditionType
     {

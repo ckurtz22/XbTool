@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace XbTool.Gimmick
+namespace GiveMaps.Gimmick
 {
     public static class Types
     {

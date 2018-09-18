@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace XbTool.Common
+namespace GiveMaps.Common
 {
     public class Table
     {

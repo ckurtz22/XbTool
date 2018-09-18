@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace XbTool.CodeGen
+namespace GiveMaps.CodeGen
 {
     public class Indenter
     {

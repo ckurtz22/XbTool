@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 
-namespace XbTool.Common.Textures
+namespace GiveMaps.Common.Textures
 {
     /// <summary>
     /// Adapted almost wholesale from DirectXTex from Microsoft. https://github.com/Microsoft/DirectXTex

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using XbTool.Common;
+using GiveMaps.Common;
 
-namespace XbTool.Gimmick
+namespace GiveMaps.Gimmick
 {
     public class Lvb
     {

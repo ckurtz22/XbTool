@@ -4,9 +4,9 @@
 // ReSharper disable UnusedParameter.Global
 
 using System;
-using XbTool.Types;
+using GiveMaps.Types;
 
-namespace XbTool.Serialization
+namespace GiveMaps.Serialization
 {
     public static class ReadFunctions
     {

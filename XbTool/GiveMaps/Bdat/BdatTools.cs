@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using XbTool.Common;
+using GiveMaps.Common;
 
-namespace XbTool.Bdat
+namespace GiveMaps.Bdat
 {
     public static class BdatTools
     {

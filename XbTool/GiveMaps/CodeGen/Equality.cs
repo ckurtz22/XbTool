@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using XbTool.Bdat;
+using GiveMaps.Bdat;
 
-namespace XbTool.CodeGen
+namespace GiveMaps.CodeGen
 {
     public class BdatTableComparer : EqualityComparer<BdatTable>
     {

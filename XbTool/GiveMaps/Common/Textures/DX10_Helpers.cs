@@ -2,7 +2,7 @@
 
 // ReSharper disable InconsistentNaming
 
-namespace XbTool.Common.Textures
+namespace GiveMaps.Common.Textures
 {
     internal static class DX10_Helpers
     {

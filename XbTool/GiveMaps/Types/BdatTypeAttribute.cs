@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XbTool.Types
+namespace GiveMaps.Types
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class BdatTypeAttribute : Attribute { }

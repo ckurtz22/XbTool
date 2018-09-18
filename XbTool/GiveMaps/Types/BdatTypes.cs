@@ -2,9 +2,9 @@
 // ReSharper disable NotAccessedField.Global
 
 using System;
-using XbTool.Bdat;
+using GiveMaps.Bdat;
 
-namespace XbTool.Types
+namespace GiveMaps.Types
 {
     [BdatType]
     [Serializable]

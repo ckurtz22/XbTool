@@ -1,6 +1,6 @@
-﻿using XbTool.Bdat;
+﻿using GiveMaps.Bdat;
 
-namespace XbTool.Types
+namespace GiveMaps.Types
 {
     public partial class BdatCollection
     {

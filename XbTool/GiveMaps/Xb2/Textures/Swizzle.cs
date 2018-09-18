@@ -1,7 +1,7 @@
 ﻿using System;
-using XbTool.Common.Textures;
+using GiveMaps.Common.Textures;
 
-namespace XbTool.Xb2.Textures
+namespace GiveMaps.Xb2.Textures
 {
     public static class Swizzle
     {

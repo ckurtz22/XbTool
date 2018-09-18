@@ -6,12 +6,12 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
-using XbTool.Common.Textures;
-using XbTool.Types;
-using XbTool.Xb2.Textures;
-using static XbTool.Program;
+using GiveMaps.Common.Textures;
+using GiveMaps.Types;
+using GiveMaps.Xb2.Textures;
+using static GiveMaps.Program;
 
-namespace XbTool.Gimmick
+namespace GiveMaps.Gimmick
 {
     public static class ExportMap
     {

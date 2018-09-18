@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using XbTool.Xb2.Textures;
+using GiveMaps.Xb2.Textures;
 
-namespace XbTool.Common.Textures
+namespace GiveMaps.Common.Textures
 {
     public static class Dds
     {

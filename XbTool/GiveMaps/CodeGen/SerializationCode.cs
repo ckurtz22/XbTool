@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using XbTool.Bdat;
+using GiveMaps.Bdat;
 
-namespace XbTool.CodeGen
+namespace GiveMaps.CodeGen
 {
     public static class SerializationCode
     {

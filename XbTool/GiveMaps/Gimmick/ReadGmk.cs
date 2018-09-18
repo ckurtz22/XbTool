@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Reflection;
 using System.IO;
-using XbTool.Common;
-using XbTool.Types;
-using static XbTool.Program;
+using GiveMaps.Common;
+using GiveMaps.Types;
+using static GiveMaps.Program;
 
-namespace XbTool.Gimmick
+namespace GiveMaps.Gimmick
 {
     public static class ReadGmk
     {

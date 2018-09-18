@@ -1,4 +1,4 @@
-﻿namespace XbTool.Common
+﻿namespace GiveMaps.Common
 {
     public interface IProgressReport
     {

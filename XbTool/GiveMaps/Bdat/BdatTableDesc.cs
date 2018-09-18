@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 
-namespace XbTool.Bdat
+namespace GiveMaps.Bdat
 {
     public class BdatTableDesc
     {

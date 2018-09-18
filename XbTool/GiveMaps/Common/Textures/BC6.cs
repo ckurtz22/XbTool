@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace XbTool.Common.Textures
+namespace GiveMaps.Common.Textures
 {
     public static class BC6
     {

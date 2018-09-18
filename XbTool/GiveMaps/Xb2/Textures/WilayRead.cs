@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace XbTool.Xb2.Textures
+namespace GiveMaps.Xb2.Textures
 {
     public class WilayRead
     {

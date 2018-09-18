@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using XbTool.Common;
+using GiveMaps.Common;
 
-namespace XbTool.Gimmick
+namespace GiveMaps.Gimmick
 {
     [DebuggerDisplay("{" + nameof(DisplayName) + ", nq}")]
     public class MapInfo

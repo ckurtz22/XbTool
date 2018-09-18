@@ -1,4 +1,4 @@
-﻿namespace XbTool.Types
+﻿namespace GiveMaps.Types
 {
     public static class BdatExtensions
     {

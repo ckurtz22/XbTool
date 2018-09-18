@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using CsvHelper;
 using CsvHelper.Configuration;
-using XbTool.Common;
+using GiveMaps.Common;
 
-namespace XbTool.Bdat
+namespace GiveMaps.Bdat
 {
     [DebuggerDisplay("{" + nameof(DebugString) + ", nq}")]
     public class BdatFieldInfo

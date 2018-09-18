@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace XbTool.Common
+namespace GiveMaps.Common
 {
     public interface IFileReader
     {

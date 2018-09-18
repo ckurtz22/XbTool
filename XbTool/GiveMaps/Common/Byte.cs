@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XbTool.Common
+namespace GiveMaps.Common
 {
     public static class Byte
     {

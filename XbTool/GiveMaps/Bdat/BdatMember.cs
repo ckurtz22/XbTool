@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using XbTool.Common;
+using GiveMaps.Common;
 
-namespace XbTool.Bdat
+namespace GiveMaps.Bdat
 {
     [DebuggerDisplay("{" + nameof(Name) + ", nq}")]
     public class BdatMember

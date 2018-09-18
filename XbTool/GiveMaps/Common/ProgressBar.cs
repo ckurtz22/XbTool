@@ -4,7 +4,7 @@ using System;
 using System.Text;
 using System.Threading;
 
-namespace XbTool.Common
+namespace GiveMaps.Common
 {
     public class ProgressBar : IDisposable, IProgressReport
     {

@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace XbTool.Serialization
+namespace GiveMaps.Serialization
 {
     public static class TypeMap
     {
@@ -21,13 +21,13 @@ namespace XbTool.Serialization
         public static Tuple<Dictionary<string, Type>, Dictionary<Type, Func<byte[], int, int, int, object>>> CreateDictionary()
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
-            var types = assembly.GetTypes().Where(x => x.IsClass && x.Namespace == "XbTool.Types").ToDictionary(x => x.Name, x => x);
+            var types = assembly.GetTypes().Where(x => x.IsClass && x.Namespace == "GiveMaps.Types").ToDictionary(x => x.Name, x => x);
             var methods = typeof(ReadFunctions).GetMethods().ToDictionary(x => x.Name, x => x);
 
             var typeDict = new Dictionary<string, Type>();
             var funcDict = new Dictionary<Type, Func<byte[], int, int, int, object>>();
 
-            Stream resourceStream = assembly.GetManifestResourceStream("XbTool.Serialization.TypeMap.txt");
+            Stream resourceStream = assembly.GetManifestResourceStream("GiveMaps.Serialization.TypeMap.txt");
             if (resourceStream == null) throw new InvalidOperationException("Can't open embedded resource");
 
             using (var reader = new StreamReader(resourceStream))
