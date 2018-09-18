@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using XbTool.Common.Textures;
 using XbTool.Xb2.Textures;
+using static XbTool.Program;
 
 namespace XbTool.Gimmick
 {

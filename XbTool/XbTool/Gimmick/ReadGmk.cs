@@ -4,6 +4,7 @@ using System.Reflection;
 using System.IO;
 using XbTool.Common;
 using XbTool.Types;
+using static XbTool.Program;
 
 namespace XbTool.Gimmick
 {
