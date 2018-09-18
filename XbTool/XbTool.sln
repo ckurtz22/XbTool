@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XbTool", "XbTool\XbTool.csproj", "{85E9CB41-5EED-4125-BACD-C97051427B14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GiveMaps", "GiveMaps\GiveMaps.csproj", "{85E9CB41-5EED-4125-BACD-C97051427B14}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
