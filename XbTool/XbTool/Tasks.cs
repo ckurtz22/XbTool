@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using XbTool.Bdat;
 using XbTool.BdatString;
@@ -13,6 +14,7 @@ using XbTool.Scripting;
 using XbTool.Serialization;
 using XbTool.Types;
 using XbTool.Xb2;
+using System.Collections.Generic;
 
 namespace XbTool
 {
@@ -85,6 +87,9 @@ namespace XbTool
                     case Task.ReplaceArchive:
                         ReplaceArchive(options);
                         break;
+					case Task.CommunityQuests:
+						CommunityQuests(options);
+						break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -153,7 +158,7 @@ namespace XbTool
 
         private static BdatTables ReadBdatTables(Options options, bool readMetadata)
         {
-            if (options.Game == Game.XB2 && options.ArdFilename != null)
+            if (options.Game == Game.XB2 && options.ArdFilename != null && options.BdatDir == null)		//Check if bdat is null to pass in bdats for Torna archive
             {
                 using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
                 {
@@ -346,28 +351,58 @@ namespace XbTool
             }
         }
 
-        private static void ReadScript(Options options)
-        {
-            if (options.Input == null) throw new NullReferenceException("No input directory was specified.");
-            if (options.Output == null) throw new NullReferenceException("No output directory was specified.");
+		private static void ReadScript(Options options)
+		{
+			//if (options.Input == null) throw new NullReferenceException("No input directory was specified.");
+			if (options.Output == null) throw new NullReferenceException("No output directory was specified.");
+			if (options.ArdFilename == null) throw new NullReferenceException("Archive must be specified");
 
-            var files = Directory.GetFiles(options.Input, "*.sb", SearchOption.AllDirectories);
-            Directory.CreateDirectory(options.Output);
+			using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+			{
 
-            options.Progress.SetTotal(files.Length);
-            foreach (var name in files)
-            {
-                var file = File.ReadAllBytes(name);
-                var script = new Script(new DataBuffer(file, options.Game, 0));
-                var dump = Export.PrintScript(script);
-                var relativePath = Helpers.GetRelativePath(name, options.Input);
+				var files = archive.FindFiles("/script/jp/*.sb");
+				Directory.CreateDirectory(options.Output);
 
-                var output = Path.ChangeExtension(Path.Combine(options.Output, relativePath), "txt");
-                Directory.CreateDirectory(Path.GetDirectoryName(output) ?? "");
-                File.WriteAllText(output, dump);
-                options.Progress.ReportAdd(1);
-            }
-        }
+				options.Progress.SetTotal(files.Count());
+				foreach (var name in files)
+				{
+					if (name == null) continue;
+					var file = archive.ReadFile(name);
+					var script = new Script(new DataBuffer(file, options.Game, 0));
+					var dump = Export.PrintScript(script);
+					//var relativePath = Helpers.GetRelativePath(name, options.Input);
+
+					var output = Path.ChangeExtension(Path.Combine(options.Output, name.Substring(11)), "txt");
+					Directory.CreateDirectory(Path.GetDirectoryName(output) ?? "");
+					File.WriteAllText(output, dump);
+					options.Progress.ReportAdd(1);
+				}
+			}
+		}
+
+
+		private static void CommunityQuests(Options options)
+		{
+			Directory.CreateDirectory(options.Output);
+			BdatCollection tables = GetBdatCollection(options);
+
+			using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+			{
+				var files = archive.FindFiles("/script/jp/*.sb");
+				File.WriteAllText($"{options.Output}.txt", "");
+				var scripts = new List<Script>();
+				foreach (var name in files)
+				{
+					if (name == null) continue;
+					var file = archive.ReadFile(name);
+					var script = new Script(new DataBuffer(file, options.Game, 0));
+					if (script.Plugins.Where(x => x.Function == "openHitonowa").Count() > 0)
+						scripts.Add(script);
+				}
+				CommunityQuests comm = new CommunityQuests(scripts.ToArray(), tables);
+				comm.PrintFile(options);
+			}
+		}
 
         private static void DecodeCatex(Options options)
         {

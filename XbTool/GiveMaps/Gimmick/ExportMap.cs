@@ -73,6 +73,12 @@ namespace GiveMaps.Gimmick
                         {
                             foreach (InfoEntry gmk in gmkType.Value)
                             {
+								if (options.Tables.ma40a_FLD_EnemyPop.Where(x => x.name == gmk.Name).Select(x => x._ene1ID).Where(x => x?.Named == true).Count() == 0)
+									if (options.Tables.ma41a_FLD_EnemyPop.Where(x => x.name == gmk.Name).Select(x => x._ene1ID).Where(x => x?.Named == true).Count() == 0)
+										continue;
+
+
+
 								count++;
 								var point = area.Get2DPosition(gmk.Xfrm.Position);
 

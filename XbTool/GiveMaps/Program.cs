@@ -38,7 +38,9 @@ namespace GiveMaps
 			string[] filenames = Directory.GetFiles($"{options.DataDir}/bdat", "*");
 			BdatTables bdats = new BdatTables(filenames, options.Game, false);
 			options.Tables = Deserialize.DeserializeTables(bdats);
-
+			options.Name = "Uniques";
+			
+			
 			foreach (string type in Gimmick.Types.GimmickFieldNames)
 			{
 				if (!File.Exists($"{options.DataDir}/../{type}.txt")) continue;
@@ -51,7 +53,7 @@ namespace GiveMaps
 					ExportMap.Export(options, gimmicks);
 				}
 			}
-			//ExportMap.ExportCsv(gimmicks, options.Output);
+			//ExportMap.ExportCsv(gimmicks, options.Output);*/
 		}
 	}
 

@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using XbTool.Common;
+using XbTool.Types;
 
 namespace XbTool.Scripting
 {
@@ -87,7 +91,27 @@ namespace XbTool.Scripting
             ReadCodeSection(data);
         }
 
-        private string GetId(int id, string user)
+		private int getQstEntry(int id, BdatCollection tables)
+		{
+			if (tables.ma40a_FLD_NpcPop.Where(x => x.EventID == id).Count() > 0)
+				return tables.ma40a_FLD_NpcPop.Where(x => x.EventID == id).First().QuestFlag;
+			if (tables.ma41a_FLD_NpcPop.Where(x => x.EventID == id).Count() > 0)
+				return tables.ma41a_FLD_NpcPop.Where(x => x.EventID == id).First().QuestFlag;
+			if (tables.ma40a_FLD_EventPop.Where(x => x.EventID == id).Count() > 0)
+				return tables.ma40a_FLD_EventPop.Where(x => x.EventID == id).First().QuestFlag;
+			if (tables.ma41a_FLD_EventPop.Where(x => x.EventID == id).Count() > 0)
+				return tables.ma41a_FLD_EventPop.Where(x => x.EventID == id).First().QuestFlag;
+			if (tables.FLD_QuestListNormalIra.Where(x => x.CallEventA == id).Count() > 0)
+				return tables.FLD_QuestListNormalIra.Where(x => x.CallEventA == id).First().Id;
+			if (tables.FLD_QuestListNormalIra.Where(x => x.CallEventB == id).Count() > 0)
+				return tables.FLD_QuestListNormalIra.Where(x => x.CallEventB == id).First().Id;
+			//if(tables.EVT_listQst01.Where(x=>x.nextID == id).Count() > 0)
+			//tables.EVT_listQst01.Where(x => x.nextID == id).First().
+			return 0;
+		}
+
+
+		private string GetId(int id, string user)
         {
             IdPoolRefs[id] += $"; {user}";
             return IdPool[id];

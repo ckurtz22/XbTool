@@ -5146,6 +5146,7 @@ namespace XbTool.Types
         public FLD_QuestTask _PurposeID;
         public FLD_QuestReward _RewardSetA;
         public FLD_QuestReward _RewardSetB;
+        public RSC_NpcList _Talker;
         public Message _QuestTitle;
         public Message _ResultA;
         public Message _ResultB;
@@ -6814,6 +6815,7 @@ namespace XbTool.Types
         public ushort Name;
         public ushort UIOffset;
         public FLD_ConditionList _Condition;
+        public FLD_QuestList _QuestFlag;
     }
 
     [BdatType]
@@ -7704,6 +7706,7 @@ namespace XbTool.Types
         public FLD_NpcGroupId _Group;
         public FLD_NpcMobMotionId _Mot;
         public RSC_NpcList _NpcID;
+        public FLD_QuestList _QuestFlag;
         public MNU_ShopList _ShopID;
         public TimeRange _TimeRange;
     }

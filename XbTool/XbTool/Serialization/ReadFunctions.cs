@@ -11596,6 +11596,7 @@ namespace XbTool.Serialization
                 item._PurposeID = tables.FLD_QuestTask.GetItemOrNull(item.PurposeID);
                 item._RewardSetA = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetA);
                 item._RewardSetB = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetB);
+                item._Talker = tables.RSC_NpcList.GetItemOrNull(item.Talker);
             }
 
             foreach (FLD_QuestList item in tables.FLD_QuestListAchievement.Items)
@@ -11612,6 +11613,7 @@ namespace XbTool.Serialization
                 item._RewardSetA = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetA);
                 item._RewardSetB = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetB);
                 item._Summary = tables.fld_quest_achievement.GetItemOrNull(item.Summary);
+                item._Talker = tables.RSC_NpcList.GetItemOrNull(item.Talker);
             }
 
             foreach (FLD_QuestList item in tables.FLD_QuestListBlade.Items)
@@ -11628,6 +11630,7 @@ namespace XbTool.Serialization
                 item._RewardSetA = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetA);
                 item._RewardSetB = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetB);
                 item._Summary = tables.fld_quest_blade.GetItemOrNull(item.Summary);
+                item._Talker = tables.RSC_NpcList.GetItemOrNull(item.Talker);
             }
 
             foreach (FLD_QuestList item in tables.FLD_QuestListIra.Items)
@@ -11640,6 +11643,7 @@ namespace XbTool.Serialization
                 item._PurposeID = tables.FLD_QuestTaskIra.GetItemOrNull(item.PurposeID);
                 item._RewardSetA = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetA);
                 item._RewardSetB = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetB);
+                item._Talker = tables.RSC_NpcList.GetItemOrNull(item.Talker);
             }
 
             foreach (FLD_QuestList item in tables.FLD_QuestListMercenaries.Items)
@@ -11656,6 +11660,7 @@ namespace XbTool.Serialization
                 item._RewardSetA = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetA);
                 item._RewardSetB = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetB);
                 item._Summary = tables.fld_quest_mercenaries.GetItemOrNull(item.Summary);
+                item._Talker = tables.RSC_NpcList.GetItemOrNull(item.Talker);
             }
 
             foreach (FLD_QuestList item in tables.FLD_QuestListMini.Items)
@@ -11672,6 +11677,7 @@ namespace XbTool.Serialization
                 item._RewardSetA = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetA);
                 item._RewardSetB = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetB);
                 item._Summary = tables.fld_quest_mini.GetItemOrNull(item.Summary);
+                item._Talker = tables.RSC_NpcList.GetItemOrNull(item.Talker);
             }
 
             foreach (FLD_QuestList item in tables.FLD_QuestListNormal.Items)
@@ -11688,6 +11694,7 @@ namespace XbTool.Serialization
                 item._RewardSetA = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetA);
                 item._RewardSetB = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetB);
                 item._Summary = tables.fld_quest_normal.GetItemOrNull(item.Summary);
+                item._Talker = tables.RSC_NpcList.GetItemOrNull(item.Talker);
             }
 
             foreach (FLD_QuestList item in tables.FLD_QuestListNormalIra.Items)
@@ -11704,6 +11711,7 @@ namespace XbTool.Serialization
                 item._RewardSetA = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetA);
                 item._RewardSetB = tables.FLD_QuestReward.GetItemOrNull(item.RewardSetB);
                 item._Summary = tables.fld_quest_normal.GetItemOrNull(item.Summary);
+                item._Talker = tables.RSC_NpcList.GetItemOrNull(item.Talker);
             }
 
             foreach (FLD_QuestReach item in tables.FLD_QuestReach.Items)
@@ -12286,6 +12294,13 @@ namespace XbTool.Serialization
             }
 
             foreach (ITM_PreciousList item in tables.ITM_PreciousList.Items)
+            {
+                item._Caption = tables.itm_precious.GetItemOrNull(item.Caption);
+                item._Name = tables.itm_precious.GetItemOrNull(item.Name);
+                item._Type = tables.FLD_OwnerBonus.GetItemOrNull(item.Type);
+            }
+
+            foreach (ITM_PreciousList item in tables.ITM_PreciousListIra.Items)
             {
                 item._Caption = tables.itm_precious.GetItemOrNull(item.Caption);
                 item._Name = tables.itm_precious.GetItemOrNull(item.Name);
@@ -13854,6 +13869,7 @@ namespace XbTool.Serialization
                 item._Group = tables.FLD_NpcGroupId.GetItemOrNull(item.Group);
                 item._Mot = tables.FLD_NpcMobMotionId.GetItemOrNull(item.Mot);
                 item._NpcID = tables.RSC_NpcList.GetItemOrNull(item.NpcID);
+                item._QuestFlag = tables.FLD_QuestListNormalIra.GetItemOrNull(item.QuestFlag);
                 item._ShopID = tables.MNU_ShopList.GetItemOrNull(item.ShopID);
                 item._TimeRange = (TimeRange)item.TimeRange;
             }
@@ -13909,6 +13925,7 @@ namespace XbTool.Serialization
             foreach (ma02a_FLD_EventPop item in tables.ma41a_FLD_EventPop.Items)
             {
                 item._Condition = tables.FLD_ConditionList.GetItemOrNull(item.Condition);
+                item._QuestFlag = tables.FLD_QuestListNormalIra.GetItemOrNull(item.QuestFlag);
             }
 
             foreach (ma05a_FLD_LandmarkPop item in tables.ma41a_FLD_LandmarkPop.Items)
