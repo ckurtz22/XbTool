@@ -36,8 +36,7 @@ namespace XbTool.Xb2
 			foreach (var quest in questEntries)
 				quests.Add(new QuestEntry(quest, tables));
 
-			talkToNpc = new QuestEntry(new FLD_QuestList(), tables);
-			talkToNpc.quest._QuestTitle = new Message { name = "Talk to NPC after requirements are met" };
+			talkToNpc = new QuestEntry(new FLD_QuestList(), tables) { questName = "Talk to NPC after requirements are met" };
 			quests.Add(talkToNpc);
 			}
 
@@ -46,19 +45,19 @@ namespace XbTool.Xb2
 			var sb = new StringBuilder();
 			foreach(QuestEntry questSet in quests)
 			{
-				if(questSet.npcSpawner != null && questSet.quest._Talker?._Name.name != questSet.npcSpawner._NpcID._Name.name)
+				if(questSet.npcSpawner != null && questSet.talker?._Name.name != questSet.npcSpawner._NpcID._Name.name)
 				{
 					var test = 1;
 				}
-				sb.AppendLine(questSet.quest?._QuestTitle?.name);
+				sb.AppendLine(questSet.questName);
 				sb.AppendLine($"\tGiven by: {questSet.npcSpawner?._NpcID._Name.name ?? questSet.eventSpawner?.name ?? "N/A"}");
-				sb.AppendLine($"\tScenario: {questSet.scenarioFlagMin.ToString() ?? "N/A"}");
-				sb.AppendLine($"\tConditions: {questSet.conditions?.Id.ToString() ?? "N/A"}");
+				sb.AppendLine($"\tReach Main Scenario point: {questSet.GetScenarioPoint() ?? "N/A"}");
+				sb.AppendLine($"\tConditions: \n{questSet.GetCondition()}");
 				foreach(CommunityNPC npc in questSet.npcs)
 				{
 					sb.AppendLine($"\t{(npc.add ? "+ " : "- ")}{npc.npcName}");
 				}
-				sb.AppendLine("");
+				sb.AppendLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 			}
 			File.WriteAllText($"{options.Output}.txt", sb.ToString());
 		}
@@ -98,8 +97,8 @@ namespace XbTool.Xb2
 				case "qst":
 					var qstNum = idName.Substring(3, 4);
 					var flag = Int32.Parse(qstNum) + 28769;
-					var questName = tables.FLD_QuestListNormalIra.Where(x => x.FlagPRT == flag).First();
-					var questSet = quests.Where(x => x.quest == questName).FirstOrDefault();
+					var quest = tables.FLD_QuestListNormalIra.Where(x => x.FlagPRT == flag).First();
+					var questSet = quests.Where(x => x.questName == quest._QuestTitle?.name).FirstOrDefault();
 					if (questSet == null)
 						break;
 
@@ -115,19 +114,22 @@ namespace XbTool.Xb2
 	public class QuestEntry
 	{
 		public List<CommunityNPC> npcs;
-		public FLD_QuestList quest;
 		public RSC_NpcList talker;
 		public ma40a_FLD_NpcPop npcSpawner;
 		public ma02a_FLD_EventPop eventSpawner;
 		public FLD_ConditionList conditions;
 
+		public BdatCollection tables;
+
 		public int flagPRT;
 		public int questID;
-		public int scenarioFlagMin;
+		public ushort scenarioFlagMin;
+		public string questName;
 
 		public QuestEntry(FLD_QuestList quest, BdatCollection tables)
 		{
-			this.quest = quest;
+			this.tables = tables;
+			questName = quest._QuestTitle?.name;
 			talker = quest._Talker;
 			flagPRT = quest.FlagPRT;
 			questID = flagPRT - 28769;
@@ -137,21 +139,16 @@ namespace XbTool.Xb2
 
 		private void SetSpawner(BdatCollection tables)
 		{
-			var events = tables.EVT_listQst01.Where(z => z.evtName.Contains($"{questID}01"));
-			npcSpawner = tables.ma40a_FLD_NpcPop.Where(x => events.Where(y => y.Id == x.EventID).Count() > 0).FirstOrDefault() ??
-				tables.ma41a_FLD_NpcPop.Where(x => events.Where(y => y.Id == x.EventID).Count() > 0).FirstOrDefault();
-			eventSpawner = tables.ma40a_FLD_EventPop.Where(x => x.name.Contains($"{questID}01")).FirstOrDefault() ??
-				tables.ma41a_FLD_EventPop.Where(x => x.name.Contains($"{questID}01")).FirstOrDefault();
-			if(flagPRT == 35787)
-			{
-				var test = 1;
-			}
-			if(npcSpawner != null)
+			var eventId = tables.EVT_listQst01.Where(z => z.evtName.Contains($"{questID}01")).Select(x => x.Id).FirstOrDefault();
+
+			eventSpawner = tables.ma40a_FLD_EventPop.Union(tables.ma41a_FLD_EventPop).Where(x => x.EventID == eventId).FirstOrDefault();
+			npcSpawner = tables.ma40a_FLD_NpcPop.Union(tables.ma41a_FLD_NpcPop).Where(x => x.EventID == eventId).FirstOrDefault();
+			if (npcSpawner != null)
 			{
 				conditions = npcSpawner._Condition;
 				scenarioFlagMin = npcSpawner.ScenarioFlagMin;
 			}
-			if(eventSpawner != null)
+			if (eventSpawner != null)
 			{
 				conditions = eventSpawner._Condition;
 				scenarioFlagMin = eventSpawner.ScenarioFlagMin;
@@ -165,58 +162,103 @@ namespace XbTool.Xb2
 		}
 
 
-		public string GetScenarioPoint(int Scenario)
+		public string GetScenarioPoint()
 		{
-			switch (Scenario - 11000)
+			switch (scenarioFlagMin - 11000)
 			{
-				case 001: return "Game start";
-				case 029: return "Hugo joins";
-				case 031: return "Kill Dispare Ropl";
-				case 047: return "Talk to Addam on Hugo's ship";
-				case 054: return "Reach Aletta";
-				case 056: return "Complete quest 'Feeding an Army'";
-				case 057: return "Complete quest 'Feeding an Army'";
-				case 059: return "Complete quest 'Lett Bridge Restoration'";
-				case 081: return "Reach Auresco";
-				case 085: return "Finish Community lvl 2 quest ?";
-				case 096: return "Defeat Malos 1 and his Gargoyles, report to the King";
-				case 105: return "Finish Community lvl 4 quest ?";
-				default: return Scenario.ToString();
+				case 1: return "Start";
+				case 18: return "What Bars the Way";
+				case 19: return "What Bars the Way";
+				case 29: return "Hugo joins";
+				case 31: return "Kill Dispare Ropl";
+				case 47: return "Exit Hugo's Ship";
+				case 54: return "Reach Aletta";
+				case 55: return "Reach Aletta";
+				case 56: return "Feeding an Army";
+				case 57: return "Feeding an Army";
+				case 59: return "Lett Bridge Restoration";
+				case 81: return "Reach Auresco";
+				case 85: return "Receive community level 2 quest";
+				case 96: return "Defeat Malos 1";
+				case 105: return "Receive community level 4 quest";
+				case 112: return "Reach Titan's interior";
+				default: return scenarioFlagMin.ToString();
 			}
 		}
 
-		public string GetCondition(int Condition)
+		public string GetCondition()
 		{
-			switch (Condition)
+			if (conditions == null) return "\t\tN/A";
+			var sb = new StringBuilder();
+			ushort[] conditionIds = { conditions.Condition1, conditions.Condition2, conditions.Condition3, conditions.Condition4,
+				conditions.Condition5, conditions.Condition6, conditions.Condition7, conditions.Condition8 };
+			ConditionType[] conditionTypes = { conditions._ConditionType1, conditions._ConditionType2, conditions._ConditionType3, conditions._ConditionType4,
+				conditions._ConditionType5, conditions._ConditionType6, conditions._ConditionType7, conditions._ConditionType8 };
+			for(int i = 0; i < 8; i++)
 			{
-				case 2935: return "\n\t\t1bit#50836=0\n\t\tNot completed part of this quest?";
-				case 2950: return "\n\t\tNot completed part of this quest?";
-				case 2973: return "\n\t\t1bit#50836=0\n\t\tNot completed part of this quest?\n\t\tCommunity lvl 2";
-				case 2983: return "\n\t\t1bit#50837=0\n\t\tNot completed part of this quest?";
-				case 3009: return "\n\t\tNot completed part of this quest?";
-				case 3048: return "\n\t\t1bit#50836=0\n\t\tNot completed part of this quest?";
-				case 3062: return "\n\t\tNot completed part of this quest?";
-				case 3073: return "\n\t\t1bit#50836=0\n\t\tNot completed part of this quest?\n\t\tCommunity lvl 3\n\t\tCompleted 'An Oasis for All'\n\t\tCompleted 'Lighting the Way'";
-				case 3077: return "\n\t\t1bit#50836=0\n\t\tCompleted 'Planning for the Future'\n\t\tQuest not in progress 'Making Up the Numbers'";
-				case 3092: return "\n\t\t1bit#50836=0\n\t\tNot completed part of this quest?";
-				case 3096: return "\n\t\t1bit#50836=0\n\t\t1bit#50805=1\n\t\tCompleted 'Homegrown Inventor'\n\t\tDo not have 'Hugo's Gold Detector'";
-				case 3128: return "\n\t\tCompleted 'The Fish That Could Be'\n\t\tCommunity lvl 3";
-				case 3151: return "\n\t\tCommunity lvl 2";
-				case 3220: return "\n\t\t1bit#50836=0";
-				case 3222: return "\n\t\t1bit#50836=0\n\t\tCommunity lvl 2";
-				case 3243: return "\n\t\t1bit#50836=0\n\t\tCommunity lvl 3";
-				case 3247: return "\n\t\tDefeated 16 UMs\n\t\tMartha not in community\n\t\t";
-				case 3265: return "\n\t\tCompleted 'Where's the Boy Gone?'\n\t\t1bit#50837=0\n\t\tCommunity lvl 2";
-				case 3271: return "\n\t\t1bit#50836=0\n\t\tQuest not in progress 'Making Up the Numbers'\n\t\tCommunity lvl 2";
-				case 3381: return "\n\t\t1bit#50837=0";
-				case 3655: return "\n\t\tCompleted 'Further Driver Coaching'\n\t\tCompleted 'Further Blade Coaching'\n\t\tCommunity lvl 2\n\t\t1bit#50837=0";
-				case 3724: return "\n\t\tCommunity lvl 2\n\t\t1bit#50837=0";
-				case 3748: return "\n\t\tCompleted 'Passing the Torch'";
-				case 3882: return "\n\t\tNot started 'Safety Measures'";
-				default: return $"\n\t\t{Condition}";
+				if (conditionIds[i] == 0) continue;
+				switch (conditionTypes[i])
+				{
+					case ConditionType.Flag:
+						sb.AppendLine($"\t\t{GetFlagReq(conditionIds[i])}");
+						break;
+					case ConditionType.Quest:
+						sb.AppendLine($"{GetQuestReq(conditionIds[i])}");
+						break;
+					case ConditionType.Item:
+						sb.AppendLine($"\t\tOwn {tables.FLD_ConditionItem[conditionIds[i]].Number} of item {tables.FLD_ConditionItem[conditionIds[i]].ItemID}");
+						break;
+					default:
+						//sb.AppendLine($"\tCondition {i}: Something weird happened Gren @@@@@@@@@@@@@@@@@");
+						break;
+				}
 			}
+			if (sb.ToString().Length == 0) return "";
+			return sb.ToString().Substring(0, sb.ToString().Length - 2);
 		}
 
+		private object GetFlagReq(int id)
+		{
+			if (tables.FLD_ConditionFlag[id].FlagID == 652)
+				return $"Community lvl {tables.FLD_ConditionFlag[id].FlagMin} required";
+			return $"Flag ID {tables.FLD_ConditionFlag[id].FlagID} must be between {tables.FLD_ConditionFlag[id].FlagMin} and {tables.FLD_ConditionFlag[id].FlagMax}";
+		}
+
+		public string GetQuestReq(int id)
+		{
+			var condition = tables.FLD_ConditionQuest[id];
+			int[] questIds = { condition.QuestFlag1, condition.QuestFlag2, condition.NotQuestFlag1, condition.NotQuestFlag2 };
+			int[] minFlags = { condition.QuestFlagMin1, condition.QuestFlagMin2, condition.NotQuestFlagMin1, condition.NotQuestFlagMin2 };
+			int[] maxFlags = { condition.QuestFlagMax1, condition.QuestFlagMax2, condition.NotQuestFlagMax1, condition.NotQuestFlagMax2 };
+
+			var sb = new StringBuilder();
+
+			for (int i = 0; i < 4; i++)
+			{
+				if (questIds[i] == 0) continue;
+				sb.AppendLine($"\t\tQuest \"" +
+					$"{tables.FLD_QuestListNormalIra[questIds[i]]._QuestTitle?.name ?? tables.FLD_QuestListNormalIra[questIds[i]]._PRTQuestID?._QuestTitle?.name ?? "N/A"}" +
+					$"\" must {(i < 2 ? "" : "NOT ")}be {GetCompletionReq(minFlags[i], maxFlags[i])}");
+			}
+			return sb.ToString().Substring(0, sb.ToString().Length - 2);
+		}
+
+		private string GetCompletionReq(int min, int max)
+		{
+			if (min == 0 && max == 0)
+				return "NOT STARTED";
+			if (min == 1 && max == 1)
+				return "STARTED";
+			if (min > 1 && max > 1)
+				return "COMPLETED";
+			if (min == 0 && max == 1)
+				return "NOT COMPLETED";
+			if (min == 1 && max > 1)
+				return "STARTED OR COMPLETED";
+			if (min == 0 && max > 1)
+				return "LITERALLY ANYTHING";
+			return "I MUST HAVE MISSED ONE";
+		}
 	}
 
 	public class CommunityNPC

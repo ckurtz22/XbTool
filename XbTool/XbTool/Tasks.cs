@@ -15,6 +15,7 @@ using XbTool.Serialization;
 using XbTool.Types;
 using XbTool.Xb2;
 using System.Collections.Generic;
+using System.Text;
 
 namespace XbTool
 {
@@ -90,7 +91,8 @@ namespace XbTool
 					case Task.CommunityQuests:
 						CommunityQuests(options);
 						break;
-                    default:
+
+					default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
@@ -389,7 +391,6 @@ namespace XbTool
 			using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
 			{
 				var files = archive.FindFiles("/script/jp/*.sb");
-				File.WriteAllText($"{options.Output}.txt", "");
 				var scripts = new List<Script>();
 				foreach (var name in files)
 				{
