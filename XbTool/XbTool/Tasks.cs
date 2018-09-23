@@ -382,10 +382,8 @@ namespace XbTool
 			}
 		}
 
-
 		private static void CommunityQuests(Options options)
 		{
-			Directory.CreateDirectory(options.Output);
 			BdatCollection tables = GetBdatCollection(options);
 
 			using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
@@ -394,10 +392,9 @@ namespace XbTool
 				var scripts = new List<Script>();
 				foreach (var name in files)
 				{
-					if (name == null) continue;
 					var file = archive.ReadFile(name);
 					var script = new Script(new DataBuffer(file, options.Game, 0));
-					if (script.Plugins.Where(x => x.Function == "openHitonowa").Count() > 0)
+					if (script.Plugins.Count(x => x.Function == "openHitonowa") > 0)
 						scripts.Add(script);
 				}
 				CommunityQuests comm = new CommunityQuests(scripts.ToArray(), tables);

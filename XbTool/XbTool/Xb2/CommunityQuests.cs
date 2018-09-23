@@ -45,10 +45,6 @@ namespace XbTool.Xb2
 			var sb = new StringBuilder();
 			foreach(QuestEntry questSet in quests)
 			{
-				if(questSet.npcSpawner != null && questSet.talker?._Name.name != questSet.npcSpawner._NpcID._Name.name)
-				{
-					var test = 1;
-				}
 				sb.AppendLine(questSet.questName);
 				sb.AppendLine($"\tGiven by: {questSet.npcSpawner?._NpcID._Name.name ?? questSet.eventSpawner?.name ?? "N/A"}");
 				sb.AppendLine($"\tReach Main Scenario point: {questSet.GetScenarioPoint() ?? "N/A"}");
@@ -97,12 +93,10 @@ namespace XbTool.Xb2
 				case "qst":
 					var qstNum = idName.Substring(3, 4);
 					var flag = Int32.Parse(qstNum) + 28769;
-					var quest = tables.FLD_QuestListNormalIra.Where(x => x.FlagPRT == flag).First();
-					var questSet = quests.Where(x => x.questName == quest._QuestTitle?.name).FirstOrDefault();
+					var quest = tables.FLD_QuestListNormalIra.FirstOrDefault(x => x.FlagPRT == flag);
+					var questSet = quests.FirstOrDefault(x => x.questName == quest._QuestTitle?.name);
 					if (questSet == null)
 						break;
-
-					
 					return questSet;
 				default:
 					break;
@@ -139,10 +133,10 @@ namespace XbTool.Xb2
 
 		private void SetSpawner(BdatCollection tables)
 		{
-			var eventId = tables.EVT_listQst01.Where(z => z.evtName.Contains($"{questID}01")).Select(x => x.Id).FirstOrDefault();
+			var eventId = tables.EVT_listQst01.FirstOrDefault(z => z.evtName.Contains($"{questID}01"))?.Id;
 
-			eventSpawner = tables.ma40a_FLD_EventPop.Union(tables.ma41a_FLD_EventPop).Where(x => x.EventID == eventId).FirstOrDefault();
-			npcSpawner = tables.ma40a_FLD_NpcPop.Union(tables.ma41a_FLD_NpcPop).Where(x => x.EventID == eventId).FirstOrDefault();
+			eventSpawner = tables.ma40a_FLD_EventPop.Union(tables.ma41a_FLD_EventPop).FirstOrDefault(x => x.EventID == eventId);
+			npcSpawner = tables.ma40a_FLD_NpcPop.Union(tables.ma41a_FLD_NpcPop).FirstOrDefault(x => x.EventID == eventId);
 			if (npcSpawner != null)
 			{
 				conditions = npcSpawner._Condition;

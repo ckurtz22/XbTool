@@ -6,17 +6,14 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
-    <OutputPath>../../GiveMaps/</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>../../</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="CodeGen\TypeNames.txt" />
     <None Remove="Serialization\TypeMap.txt" />
   </ItemGroup>
+
 
   <ItemGroup>
     <EmbeddedResource Include="CodeGen\TypeNames.txt" />
@@ -40,10 +37,7 @@
     <None Update="Data\menu\image\*.wilay" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data\menu\minimap\*.seg" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data\menu\minimap\*.mi" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Data\" />
+    <None Update="Data\*.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

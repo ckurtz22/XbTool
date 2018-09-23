@@ -11,12 +11,12 @@ namespace GiveMaps.Gimmick
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public Dictionary<string, Lvb> Gimmicks { get; set; }
-        public MapAreaInfo[] Areas { get; }
+        public List<MapAreaInfo> Areas { get; }
 
         public MapInfo(DataBuffer data)
         {
             var count = data.ReadInt32(4, true);
-            Areas = new MapAreaInfo[count];
+            Areas = new List<MapAreaInfo>();
 
             for (int i = 0; i < count; i++)
             {
@@ -35,7 +35,7 @@ namespace GiveMaps.Gimmick
                 area.UpperBound = new Point3(xHi, yHi, zHi);
                 area.Size = new Point3(xHi - xLo, yHi - yLo, zHi - zLo);
                 data.Position = start + 72;
-                Areas[i] = area;
+                Areas.Add(area);
             }
         }
 
@@ -75,13 +75,20 @@ namespace GiveMaps.Gimmick
 
             foreach (var map in infos.Values)
             {
-                foreach (var area in map.Areas)
+                foreach (var area in map.Areas.ToArray())
                 {
                     var name = area.Name;
-                    var file = File.ReadAllBytes($"{mapDir}/{name}_map.seg");
-                    area.SegmentInfo = new MapSegmentInfo(new DataBuffer(file, Game.XB2, 0));
+                    var file = new DataBuffer(File.ReadAllBytes($"{mapDir}/{name}_map.seg"), Game.XB2, 0);
+					if (file.ReadInt16(0, false) == 0x696D) { 
+						map.Areas.Remove(area);
+						continue;
+					}
+					
+                    area.SegmentInfo = new MapSegmentInfo(file);
                 }
-            }
+
+
+			}
 
             return infos;
         }

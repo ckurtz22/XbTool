@@ -10,10 +10,11 @@ namespace GiveMaps.Gimmick
 {
     public static class ReadGmk
     {
-        public static MapInfo[] ReadAll(Options options, IProgressReport progress = null)
+        public static MapInfo[] ReadAll(Options options)
         {
+			var progress = options.Progress;
             progress?.LogMessage("Reading map info and gimmick sets");
-            Dictionary<string, MapInfo> maps = MapInfo.ReadAll($"{options.DataDir}/menu/minimap");
+            Dictionary<string, MapInfo> maps = MapInfo.ReadAll("Data/menu/minimap");
 
             var mapList = options.Tables.FLD_maplist;
             var areaList = options.Tables.MNU_MapInfo;
@@ -40,36 +41,38 @@ namespace GiveMaps.Gimmick
                     // Gormott (ma05a), and the first map for everywhere else.
                     if (!string.IsNullOrWhiteSpace(area.level_name2)
                         && area.level_name == areaInfo.Name
-                        && mapInfo.Name == "ma05a")
+                        && (mapInfo.Name == "ma05a" || mapInfo.Name == "ma41a"))
                     {
-                        areaInfo.Priority = int.MaxValue;
+                        areaInfo.Priority = 100;
                     }
                     else if (!string.IsNullOrWhiteSpace(area.level_name2)
                              && area.level_name2 == areaInfo.Name
-                             && mapInfo.Name != "ma05a")
+                             && mapInfo.Name != "ma05a" && mapInfo.Name != "ma41a")
                     {
-                        areaInfo.Priority = int.MaxValue;
+                        areaInfo.Priority = 100;
                     }
                     else
                     {
                         areaInfo.Priority = area.level_priority;
                     }
 
-                    if (area._disp_name?.name != null) areaInfo.DisplayName = area._disp_name.name;
+					if (area._disp_name?.name != null) areaInfo.DisplayName = ( area._disp_name.name == "Entire Area" ?
+							options.Tables.ma40a_FLD_LandmarkPop.Union(options.Tables.ma41a_FLD_LandmarkPop)
+							.FirstOrDefault(x => x._menuMapImage?.Id == area.Id)._menuGroup._disp_name.name : area._disp_name.name);
                 }
 
-                var gimmickSet = ReadGimmickSet($"{options.DataDir}/gmk", options.Tables, map.Id);
+                var gimmickSet = ReadGimmickSet("Data/gmk", options.Tables, map.Id, options.Type);
 				AssignGimmickAreas(gimmickSet, mapInfo, options);
 			}
 
 			return maps.Values.ToArray();
         }
 
-        public static Dictionary<string, Lvb> ReadGimmickSet(string gmkDir, BdatCollection tables, int mapId)
+        public static Dictionary<string, Lvb> ReadGimmickSet(string gmkDir, BdatCollection tables, int mapId, string gmkType)
         {
             RSC_GmkSetList setBdat = tables.RSC_GmkSetList.First(x => x.mapId == mapId);
             var fieldsDict = setBdat.GetType().GetFields().ToDictionary(x => x.Name, x => x);
-            var fields = fieldsDict.Values.Where(x => x.FieldType == typeof(string) && !x.Name.Contains("_bdat"));
+            var fields = fieldsDict.Values.Where(x => x.FieldType == typeof(string) && !x.Name.Contains("_bdat") && x.Name == gmkType);
             var gimmicks = new Dictionary<string, Lvb>();
 
             foreach (FieldInfo field in fields)
@@ -77,7 +80,7 @@ namespace GiveMaps.Gimmick
                 var value = (string)field.GetValue(setBdat);
                 if (value == null) continue;
                 string filename = $"{gmkDir}/{value}.lvb";
-                if (!File.Exists(filename)) continue;
+				if (!File.Exists(filename)) continue;
 
                 byte[] file = File.ReadAllBytes(filename);
                 var lvb = new Lvb(new DataBuffer(file, Game.XB2, 0)) { Filename = field.Name };
@@ -104,49 +107,45 @@ namespace GiveMaps.Gimmick
 				if (options.Type != "all" && options.Type != type) continue;
                 foreach (var gmk in gmkType.Value.Info)
                 {
-					if (!isValidGmk(gmk, options)) continue;
+					if (!IsValidGmk(gmk, options)) continue;
                     MapAreaInfo area = mapInfo.GetContainingArea(gmk.Xfrm.Position);
                     area?.AddGimmick(gmk, type);
                 }
             }
         }
 
-		private static bool isValidGmk(InfoEntry gmk, Options options)
+		private static bool IsValidGmk(InfoEntry gmk, Options options)
 		{
 			if (gmk.Name == "") return false;
 			switch (options.Type)
 			{
 				case "collection":
-					var items = options.Tables.ITM_CollectionList.Where(x => x._Name?.name == options.Name);
-					var gormottItem = options.Tables.ma41a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
-					var tornaItem = options.Tables.ma40a_FLD_CollectionPopList.Where(x => x.name == gmk.Name);
+					var items = options.Tables.ITM_CollectionList.Where(x => options.Names.Contains(x._Name?.name));
+					var gormottItem = options.Tables.ma41a_FLD_CollectionPopList.FirstOrDefault(x => x.name == gmk.Name)?._CollectionTable;
+					var tornaItem = options.Tables.ma40a_FLD_CollectionPopList.FirstOrDefault(x => x.name == gmk.Name)?._CollectionTable;
 
-					if (gormottItem.Count() > 0 && !(items.Contains(gormottItem.First()._CollectionTable._itm1ID) || items.Contains(gormottItem.First()._CollectionTable._itm2ID) ||
-						items.Contains(gormottItem.First()._CollectionTable._itm3ID) || items.Contains(gormottItem.First()._CollectionTable._itm4ID))) { return false; }
-					if (tornaItem.Count() > 0 && !(items.Contains(tornaItem.First()._CollectionTable._itm1ID) || items.Contains(tornaItem.First()._CollectionTable._itm2ID) ||
-						items.Contains(tornaItem.First()._CollectionTable._itm3ID) || items.Contains(tornaItem.First()._CollectionTable._itm4ID))) { return false; }
-					if (tornaItem.Count() == 0 && gormottItem.Count() == 0) return false;
-					return true;
+					if (items.Contains(gormottItem?._itm1ID) || items.Contains(gormottItem?._itm2ID) || items.Contains(gormottItem?._itm3ID) || items.Contains(gormottItem?._itm4ID) ||
+						items.Contains(tornaItem?._itm1ID) || items.Contains(tornaItem?._itm2ID) || items.Contains(tornaItem?._itm3ID) || items.Contains(tornaItem?._itm4ID)) return true;
+
+					return false;
+
 				case "enemy":
-					var enemies = options.Tables.CHR_EnArrange.Where(x => x._Name?.name == options.Name);
-					var gormottEnemy = options.Tables.ma41a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
-					var tornaEnemy = options.Tables.ma40a_FLD_EnemyPop.Where(x => x.name == gmk.Name);
+					var enemies = options.Tables.CHR_EnArrange.Where(x => options.Names.Contains(x._Name?.name));
+					var gormottEnemy = options.Tables.ma41a_FLD_EnemyPop.FirstOrDefault(x => x.name == gmk.Name);
+					var tornaEnemy = options.Tables.ma40a_FLD_EnemyPop.FirstOrDefault(x => x.name == gmk.Name);
 
-					if (gormottEnemy.Count() > 0 && !(enemies.Contains(gormottEnemy.First()._ene1ID) || enemies.Contains(gormottEnemy.First()._ene2ID) ||
-						enemies.Contains(gormottEnemy.First()._ene3ID) || enemies.Contains(gormottEnemy.First()._ene4ID))) { return false; }
-					if (tornaEnemy.Count() > 0 && !(enemies.Contains(tornaEnemy.First()._ene1ID) || enemies.Contains(tornaEnemy.First()._ene2ID) ||
-						enemies.Contains(tornaEnemy.First()._ene3ID) || enemies.Contains(tornaEnemy.First()._ene4ID))) { return false; }
-					if (tornaEnemy.Count() == 0 && gormottEnemy.Count() == 0) return false;
-					return true;
+					if (enemies.Contains(gormottEnemy?._ene1ID) || enemies.Contains(gormottEnemy?._ene2ID) || enemies.Contains(gormottEnemy?._ene3ID) || enemies.Contains(gormottEnemy?._ene4ID) ||
+						enemies.Contains(tornaEnemy?._ene1ID) || enemies.Contains(tornaEnemy?._ene2ID) || enemies.Contains(tornaEnemy?._ene3ID) || enemies.Contains(tornaEnemy?._ene4ID)) return true;
+
+					return false;
+
 				case "npc":
-					var npcs = options.Tables.RSC_NpcList.Where(x => x._Name?.name == options.Name);
-					var gormottNpc = options.Tables.ma41a_FLD_NpcPop.Where(x => x.name == gmk.Name);
-					var tornaNpc = options.Tables.ma40a_FLD_NpcPop.Where(x => x.name == gmk.Name);
+					var npcs = options.Tables.RSC_NpcList.Where(x => options.Names.Contains(x._Name?.name));
+					var npcPop = options.Tables.ma40a_FLD_NpcPop.Union(options.Tables.ma41a_FLD_NpcPop).FirstOrDefault(x => x.name == gmk.Name);
 
-					if (gormottNpc.Count() > 0 && !npcs.Contains(gormottNpc.First()._NpcID)) { return false; }
-					if (tornaNpc.Count() > 0 && !npcs.Contains(tornaNpc.First()._NpcID)) { return false; }
-					if (tornaNpc.Count() == 0 && gormottNpc.Count() == 0) return false;
-					return true;
+					if (npcs.Contains(npcPop?._NpcID)) return true;
+					return false;
+
 				case "all":
 					return true;
 				default:

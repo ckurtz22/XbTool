@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using GiveMaps.Bdat;
@@ -28,30 +29,27 @@ namespace GiveMaps
 			public string DataDir { get; set; }
 			public string Input { get; set; }
 			public string Output { get; set; }
-			public string Name { get; set; }
+			public List<string> Names { get; set; }
 			public string Type { get; set; }
 			public BdatCollection Tables { get; set; }
+			public IProgressReport Progress { get; set; }
 		}
 
 		private static void ReadGimmick(Options options)
 		{
-			string[] filenames = Directory.GetFiles($"{options.DataDir}/bdat", "*");
+			string[] filenames = Directory.GetFiles($"Data/bdat", "*");
 			BdatTables bdats = new BdatTables(filenames, options.Game, false);
 			options.Tables = Deserialize.DeserializeTables(bdats);
-			options.Name = "Uniques";
-			
-			
+
+
 			foreach (string type in Gimmick.Types.GimmickFieldNames)
 			{
-				if (!File.Exists($"{options.DataDir}/../{type}.txt")) continue;
-				var names = File.ReadAllLines($"{options.DataDir}/../{type}.txt");
+				if (!File.Exists($"{type}.txt")) continue;
+				options.Names = new List<string>(File.ReadAllLines($"{type}.txt"));
 				options.Type = type;
-				foreach (string name in names)
-				{
-					options.Name = name;
-					var gimmicks = ReadGmk.ReadAll(options);
-					ExportMap.Export(options, gimmicks);
-				}
+				var gimmicks = ReadGmk.ReadAll(options);
+				//ExportMap.Export(options, gimmicks);
+				ExportMap.MakeMap(options, gimmicks);
 			}
 			//ExportMap.ExportCsv(gimmicks, options.Output);*/
 		}
