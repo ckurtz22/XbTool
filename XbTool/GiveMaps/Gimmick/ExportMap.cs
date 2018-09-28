@@ -25,42 +25,38 @@ namespace GiveMaps.Gimmick
 				Point3 min = GetMinPoint(areaList), max = GetMaxPoint(areaList);
 
 				Bitmap baseMap = GetBaseMap(map.Name);
+				var circleSize = 15 * scale;
+				var brush = new SolidBrush(System.Drawing.Color.Red);
+				Pen pen = new Pen(new SolidBrush(System.Drawing.Color.Black), 1 * scale);
+				Font font = new Font("Times New Roman", 10);
+				var textBrush = new SolidBrush(System.Drawing.Color.Black);
 
 				var collectionTables = new List<FLD_CollectionTable>();
 
 				foreach (var area in areaList)
 				{
-					var gmkType = area.Gimmicks.FirstOrDefault(x => x.Key == options.Type);
-					if (gmkType.Value == null) continue;
 					float posx = 2 * (area.LowerBound.X - min.X);
 					float posy = 2 * (area.LowerBound.Z - min.Z);
 
-					var color = ColorTranslator.FromWin32(area.Priority * 150000);
-					color = System.Drawing.Color.Red;
-					var brush = new SolidBrush(color);
-					Pen pen = new Pen(new SolidBrush(System.Drawing.Color.Black), 1 * scale);
-					var circleSize = 15;
-					Font font = new Font("Times New Roman", 10);
-					var textBrush = new SolidBrush(System.Drawing.Color.Black);
+					//var color = ColorTranslator.FromWin32(area.Priority * 150000);
 
-
-					foreach (InfoEntry gmk in gmkType.Value)
-					{
-						var point = area.Get2DPosition(gmk.Xfrm.Position);
-						using (Graphics graphics = Graphics.FromImage(baseMap))
-						{
-							graphics.FillCircle(brush, posx + point.X * scale, posy + point.Y * scale, circleSize * scale);
-							graphics.DrawCircle(pen, posx + point.X * scale, posy + point.Y * scale, circleSize * scale);
-							if (options.Type == "collection")
+					foreach (var gmkType in area.Gimmicks.Where(x => x.Key == options.Type || options.Type == "all"))
+						foreach (InfoEntry gmk in gmkType.Value)
+							using (Graphics graphics = Graphics.FromImage(baseMap))
 							{
-								var gmkTable = GetTable(map.Name, options, gmk);
-								if (!collectionTables.Contains(gmkTable)) collectionTables.Add(gmkTable);
-								graphics.DrawString(gmkTable?.Id.ToString("000") ?? "N/A", font, textBrush,
-									new RectangleF((posx + point.X * scale) - font.Size, (posy + point.Y * scale) - font.Size * 3 / 4, font.Size * 3, font.Size * 1.5f));
-								//brush = new SolidBrush(CategoryColor(gmkTable));
+								var point = area.Get2DPosition(gmk.Xfrm.Position, scale);
+								graphics.FillCircle(brush, posx + point.X * scale, posy + point.Y * scale, circleSize);
+								graphics.DrawCircle(pen, posx + point.X * scale, posy + point.Y * scale, circleSize);
+								if (options.Type == "collection")
+								{
+									var gmkTable = GetTable(map.Name, options, gmk);
+									if (!collectionTables.Contains(gmkTable)) collectionTables.Add(gmkTable);
+									var brush2 = new SolidBrush(CategoryColor(gmkTable));
+									graphics.FillCircle(brush2, posx + point.X * scale, posy + point.Y * scale, circleSize);
+									graphics.DrawString(gmkTable?.Id.ToString("000") ?? "N/A", font, textBrush, new RectangleF
+										((posx + point.X * scale) - font.Size, (posy + point.Y * scale) - font.Size * 3 / 4, font.Size * 3, font.Size * 1.5f));
+								}
 							}
-						}
-					}
 				}
 				DrawTables(baseMap, collectionTables);
 				Directory.CreateDirectory($"Maps/");
@@ -106,6 +102,7 @@ namespace GiveMaps.Gimmick
 
 				foreach (var table in collectionTables.Where(x => x != null))
 				{
+					tableBrush = new SolidBrush(CategoryColor(table));
 					var text1 = $"Table {table.Id.ToString("000")} drops {table.randitmPopMin} to {table.randitmPopMax} items";
 					string[] text = {	table.itm1Per != 0 ? $"{table._itm1ID?._Name.name ?? ""} - {table.itm1Per}%" : "",
 										table.itm2Per != 0 ? $"{table._itm2ID?._Name.name ?? ""} - {table.itm2Per}%" : "",

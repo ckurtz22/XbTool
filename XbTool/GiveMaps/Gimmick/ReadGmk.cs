@@ -72,7 +72,7 @@ namespace GiveMaps.Gimmick
         {
             RSC_GmkSetList setBdat = tables.RSC_GmkSetList.First(x => x.mapId == mapId);
             var fieldsDict = setBdat.GetType().GetFields().ToDictionary(x => x.Name, x => x);
-            var fields = fieldsDict.Values.Where(x => x.FieldType == typeof(string) && !x.Name.Contains("_bdat") && x.Name == gmkType);
+            var fields = fieldsDict.Values.Where(x => x.FieldType == typeof(string) && !x.Name.Contains("_bdat") && (x.Name == gmkType || gmkType == "all"));
             var gimmicks = new Dictionary<string, Lvb>();
 
             foreach (FieldInfo field in fields)
@@ -148,7 +148,9 @@ namespace GiveMaps.Gimmick
 
 				case "all":
 					return true;
+
 				default:
+					if(options.Names.Contains(gmk.Name)) return true;
 					return false;
 			}
 		

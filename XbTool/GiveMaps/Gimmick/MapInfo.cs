@@ -124,13 +124,19 @@ namespace GiveMaps.Gimmick
             Gimmicks[type].Add(gimmick);
         }
 
-        public Point2 Get2DPosition(Point3 point3)
-        {
-            var x = (point3.X - LowerBound.X) / Size.X * SegmentInfo.FullWidth;
-            var y = (point3.Z - LowerBound.Z) / Size.Z * SegmentInfo.FullHeight;
-            return new Point2(x, y);
-        }
-    }
+		public Point2 Get2DPosition(Point3 point3)
+		{
+			var x = (point3.X - LowerBound.X) / Size.X * SegmentInfo.FullWidth;
+			var y = (point3.Z - LowerBound.Z) / Size.Z * SegmentInfo.FullHeight;
+			return new Point2(x, y);
+		}
+		public Point2 Get2DPosition(Point3 point3, float scale)
+		{
+			var x = (point3.X - LowerBound.X) / Size.X * SegmentInfo.FullWidth * scale;
+			var y = (point3.Z - LowerBound.Z) / Size.Z * SegmentInfo.FullHeight * scale;
+			return new Point2(x, y);
+		}
+	}
 
     public class MapSegmentInfo
     {

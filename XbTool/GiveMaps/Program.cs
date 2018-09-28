@@ -41,8 +41,10 @@ namespace GiveMaps
 			BdatTables bdats = new BdatTables(filenames, options.Game, false);
 			options.Tables = Deserialize.DeserializeTables(bdats);
 
+			var types = new List<string>(Gimmick.Types.GimmickFieldNames) { "all" };
 
-			foreach (string type in Gimmick.Types.GimmickFieldNames)
+
+			foreach (string type in types)
 			{
 				if (!File.Exists($"{type}.txt")) continue;
 				options.Names = new List<string>(File.ReadAllLines($"{type}.txt"));

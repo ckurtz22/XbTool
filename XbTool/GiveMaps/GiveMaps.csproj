@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data - Copy\**" />
+    <EmbeddedResource Remove="Data - Copy\**" />
+    <None Remove="Data - Copy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="CodeGen\TypeNames.txt" />
     <None Remove="Serialization\TypeMap.txt" />
   </ItemGroup>
