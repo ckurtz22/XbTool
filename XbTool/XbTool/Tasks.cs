@@ -16,6 +16,7 @@ using XbTool.Types;
 using XbTool.Xb2;
 using System.Collections.Generic;
 using System.Text;
+using LibHac.IO;
 
 namespace XbTool
 {
@@ -91,6 +92,9 @@ namespace XbTool
 					case Task.CommunityQuests:
 						CommunityQuests(options);
 						break;
+					case Task.GenerateTreeReqs:
+						GenerateTreeReqs(options);
+						break;
 
 					default:
                         throw new ArgumentOutOfRangeException();
@@ -98,23 +102,140 @@ namespace XbTool
             }
         }
 
-        private static void ExtractArchive(Options options)
-        {
-            if (options.ArdFilename == null) throw new NullReferenceException("Archive must be specified");
+		private static int getCount(FLD_QuestTask task)
+		{
+			switch (task?._TaskID1.GetType().Name)
+			{
+				case "FLD_QuestBattle":
+					FLD_QuestBattle battle = (FLD_QuestBattle)task._TaskID1;
+					return battle.Count;
 
-            using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
-            {
-                FileArchive.Extract(archive, options.Output, options.Progress);
-            }
-        }
+				case "FLD_QuestCollect":
+					FLD_QuestCollect collect = (FLD_QuestCollect)task._TaskID1;
+					return collect.Count;
 
-        private static void ReplaceArchive(Options options)
+				case "FLD_Achievement":
+					FLD_Achievement achieve = (FLD_Achievement)task._TaskID1;
+					return (int)achieve.Count;
+
+				case "FLD_QuestUse":
+					FLD_QuestUse item = (FLD_QuestUse)task._TaskID1;
+					return item.ItemNumber;
+
+				case "FLD_QuestFieldSkillCount":
+					return 5;
+
+				case "FLD_QuestCondition":
+					FLD_QuestCondition quest = (FLD_QuestCondition)task._TaskID1;
+					if (quest._ConditionID.ConditionType1 == 7)
+					{
+						FLD_ConditionIdea idea = (FLD_ConditionIdea)quest._ConditionID._Condition1;
+						return idea.TrustPoint;
+					}
+					return 0;
+
+				default:
+					return 0;
+			}
+		}
+
+		private static void GenerateTreeReqs(Options options)
+		{
+			var sb = new StringBuilder();
+			BdatCollection tables = GetBdatCollection(options);
+			var headerFilename = options.ArhFilename;
+			var HeaderFile = File.ReadAllBytes(headerFilename);
+			var headerFile = new byte[HeaderFile.Length];
+			Array.Copy(HeaderFile, headerFile, HeaderFile.Length);
+			FileArchive.DecryptArh(headerFile);
+			File.WriteAllBytes("bf2_d.arh", headerFile);
+			foreach(var blade in tables.CHR_Bl)
+			{
+				if (blade._Name == null || blade._BArts3 == null || blade._BSkill3 == null) continue;
+				sb.AppendLine(blade._Name.name);
+				sb.AppendLine();
+				sb.AppendLine("Key Affinity\tRequirement");
+
+				for(int i = 0; i < 5; i++)
+				{
+					var task = blade._KeyAchievement?._AchievementID[i]._Task?._NextQuestA._PurposeID;
+					var count = getCount(task);
+					if (task != null)
+						sb.AppendLine($"Affinity Level {i + 1}\t" + task._TaskLog1.name.Replace('\n', ' ') + (count == 0 ? "" : $" ({count})"));
+					else
+						sb.AppendLine();
+				}
+
+				sb.AppendLine("Special 1\tRequirement\tSpecial 2\tRequirement\tSpecial 3\tRequirement\t");
+
+				for (int i = 0; i < 5; i++)
+				{
+					for (int j = 0; j < 3; j++)
+					{
+						var task = blade._ArtsAchievement[j]?._AchievementID[i]?._Task?._NextQuestA?._PurposeID;
+						var count = getCount(task);
+						if (task != null)
+							sb.Append($"{blade._BArts[j]._Name.name} {i + 1}\t" + task._TaskLog1.name.Replace('\n', ' ') + (count == 0 ? "" : $" ({count})") + "\t");
+						else
+							sb.Append("\t\t");
+					}
+					sb.AppendLine();
+				}
+
+				sb.AppendLine("Battle Skill 1\tRequirement\tBattle Skill 2\tRequirement\tBattle Skill 3\tRequirement\t");
+
+				for (int i = 0; i < 5; i++)
+				{
+					for (int j = 0; j < 3; j++)
+					{
+						var task = blade._SkillAchievement[j]?._AchievementID[i]?._Task?._NextQuestA?._PurposeID;
+						var count = getCount(task);
+						if (task != null)
+							sb.Append($"{blade._BSkill[j]._Name.name} {i + 1}\t" + task._TaskLog1.name.Replace('\n', ' ') + (count == 0 ? "" : $" ({count})") + "\t");
+						else
+							sb.Append("\t\t");
+					}
+					sb.AppendLine();
+				}
+
+				sb.AppendLine("Field Skill 1\tRequirement\tField Skill 2\tRequirement\tField Skill 3\tRequirement\t");
+
+				for (int i = 0; i < 5; i++)
+				{
+					for (int j = 0; j < 3; j++)
+					{
+						var task = blade._FskillAchivement[j]?._AchievementID[i]?._Task?._NextQuestA?._PurposeID;
+						var count = getCount(task);
+						if (task != null)
+							sb.Append($"{blade._FSkill[j]._Name.name} {i + 1}\t" + task._TaskLog1.name.Replace('\n', ' ') + (count == 0 ? "" : $" ({count})") + "\t");
+						else
+							sb.Append("\t\t");
+					}
+					sb.AppendLine();
+				}
+				
+				sb.AppendLine();
+				sb.AppendLine();
+
+			}
+			File.WriteAllText(options.Output, sb.ToString());
+
+		}
+
+		private static void ExtractArchive(Options options)
+		{
+			using (var archive = new FileArchive(options))
+			{
+				FileArchive.Extract(archive, options.Output, options.Progress, options.Filter);
+			}
+		}
+
+		private static void ReplaceArchive(Options options)
         {
-            if (options.ArdFilename == null) throw new NullReferenceException("Archive must be specified");
             if (options.Input == null) throw new NullReferenceException("No input file was specified.");
             if (options.Output == null) throw new NullReferenceException("No output file was specified.");
 
-            using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+            using (var archive = new FileArchive(options))
             {
                 var replacement = File.ReadAllBytes(options.Input);
                 archive.ReplaceFile(options.Output, replacement);
@@ -160,9 +281,9 @@ namespace XbTool
 
         private static BdatTables ReadBdatTables(Options options, bool readMetadata)
         {
-            if (options.Game == Game.XB2 && options.ArdFilename != null && options.BdatDir == null)		//Check if bdat is null to pass in bdats for Torna archive
+			if (options.Game == Game.XB2 && (options.ArdFilename != null || options.SwitchFsDir != null) && options.BdatDir == null)		//Check if bdat is null to pass in bdats for Torna archive
             {
-                using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+                using (var archive = new FileArchive(options))
                 {
                     return new BdatTables(archive, readMetadata);
                 }
@@ -242,10 +363,10 @@ namespace XbTool
             if (options.Input == null && options.ArdFilename == null) throw new NullReferenceException("Input was not specified.");
             if (options.Output == null) throw new NullReferenceException("Output directory was not specified.");
 
-            if (options.ArdFilename != null)
+            if (options.ArdFilename != null || options.SwitchFsDir != null)
             {
                 string input = options.Input ?? "/menu/image/";
-                using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+                using (var archive = new FileArchive(options))
                 {
                     Extract.ExtractTextures(archive, input, options.Output, options.Progress);
                 }
@@ -338,14 +459,12 @@ namespace XbTool
         }
 
         private static void ReadGimmick(Options options)
-        {
-            using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+		{
+			if (options.Output == null) throw new NullReferenceException("No output file was specified.");
+			BdatCollection tables = GetBdatCollection(options);
+
+			using (var archive = new FileArchive(options))
             {
-                if (options.ArdFilename == null) throw new NullReferenceException("Archive must be specified");
-                if (options.Output == null) throw new NullReferenceException("No output file was specified.");
-
-                BdatCollection tables = GetBdatCollection(options);
-
                 var gimmicks = ReadGmk.ReadAll(archive, tables);
                 ExportMap.ExportCsv(gimmicks, options.Output);
 
@@ -357,9 +476,8 @@ namespace XbTool
 		{
 			//if (options.Input == null) throw new NullReferenceException("No input directory was specified.");
 			if (options.Output == null) throw new NullReferenceException("No output directory was specified.");
-			if (options.ArdFilename == null) throw new NullReferenceException("Archive must be specified");
 
-			using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+			using (var archive = new FileArchive(options))
 			{
 
 				var files = archive.FindFiles("/script/jp/*.sb");
@@ -369,6 +487,7 @@ namespace XbTool
 				foreach (var name in files)
 				{
 					if (name == null) continue;
+					if (!(name.Contains("bs13a"))) continue;
 					var file = archive.ReadFile(name);
 					var script = new Script(new DataBuffer(file, options.Game, 0));
 					var dump = Export.PrintScript(script);
@@ -386,7 +505,7 @@ namespace XbTool
 		{
 			BdatCollection tables = GetBdatCollection(options);
 
-			using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+			using (var archive = new FileArchive(options))
 			{
 				var files = archive.FindFiles("/script/jp/*.sb");
 				var scripts = new List<Script>();

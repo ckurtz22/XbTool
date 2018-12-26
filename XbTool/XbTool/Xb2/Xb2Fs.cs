@@ -39,13 +39,15 @@ namespace XbTool.Xb2
                     //Files.Add(path, new FsFile(file, i));
                 }
             }
+			Options options = new Options
+			{
+				ArdFilename = Path.Combine(baseDir, "bf2.ard"),
+				ArhFilename = Path.Combine(baseDir, "bf2.arh")
+			};
 
-            var arh = Path.Combine(baseDir, "bf2.arh");
-            var ard = Path.Combine(baseDir, "bf2.ard");
-
-            if (File.Exists(arh) && File.Exists(ard))
+			if (File.Exists(options.ArhFilename) && File.Exists(options.ArdFilename))
             {
-                Archive = new FileArchive(arh, ard);
+                Archive = new FileArchive(options);
                 foreach (var file in Archive.FileInfo.Where(x => x.Filename != null)) //Todo: Investigate
                 {
                     Files.Add(file.Filename, new FsFile(file.Filename, -1));

@@ -22,9 +22,12 @@ namespace GiveMaps.Gimmick
 			foreach (var map in gimmicks)
 			{
 				var areaList = map.Areas.OrderBy(x => x.Priority).ToList();
+
 				Point3 min = GetMinPoint(areaList), max = GetMaxPoint(areaList);
 
-				Bitmap baseMap = GetBaseMap(map.Name);
+				//GenerateBaseMap(map, options, scale);
+
+				Bitmap baseMap = new Bitmap($"Data/maps/{GetBaseMap(map.Name, options)}.png");
 				var circleSize = 15 * scale;
 				var brush = new SolidBrush(System.Drawing.Color.Red);
 				Pen pen = new Pen(new SolidBrush(System.Drawing.Color.Black), 1 * scale);
@@ -32,6 +35,8 @@ namespace GiveMaps.Gimmick
 				var textBrush = new SolidBrush(System.Drawing.Color.Black);
 
 				var collectionTables = new List<FLD_CollectionTable>();
+
+				int count = 0;
 
 				foreach (var area in areaList)
 				{
@@ -44,10 +49,11 @@ namespace GiveMaps.Gimmick
 						foreach (InfoEntry gmk in gmkType.Value)
 							using (Graphics graphics = Graphics.FromImage(baseMap))
 							{
+								count++;
 								var point = area.Get2DPosition(gmk.Xfrm.Position, scale);
 								graphics.FillCircle(brush, posx + point.X * scale, posy + point.Y * scale, circleSize);
 								graphics.DrawCircle(pen, posx + point.X * scale, posy + point.Y * scale, circleSize);
-								if (options.Type == "collection")
+								if (gmkType.Key == "collection")
 								{
 									var gmkTable = GetTable(map.Name, options, gmk);
 									if (!collectionTables.Contains(gmkTable)) collectionTables.Add(gmkTable);
@@ -60,7 +66,24 @@ namespace GiveMaps.Gimmick
 				}
 				DrawTables(baseMap, collectionTables);
 				Directory.CreateDirectory($"Maps/");
-				File.WriteAllBytes($"Maps/{map.DisplayName} - {options.Type}.png", baseMap.ToPng());
+				if (count > 0)
+					File.WriteAllBytes($"Maps/{map.DisplayName} - {options.Type}.png", baseMap.ToPng());
+
+				var sb = new StringBuilder();
+				collectionTables.OrderBy(x => x?.Id);
+				foreach (var table in collectionTables.Where(x => x != null))
+				{
+					sb.Append(table.Id);
+					if (options.Names.Contains(table._itm1ID?._Name.name)) sb.Append($"\t{table._itm1ID._Name.name}");
+					if (options.Names.Contains(table._itm2ID?._Name.name)) sb.Append($"\t{table._itm2ID._Name.name}");
+					if (options.Names.Contains(table._itm3ID?._Name.name)) sb.Append($"\t{table._itm3ID._Name.name}");
+					if (options.Names.Contains(table._itm4ID?._Name.name)) sb.Append($"\t{table._itm4ID._Name.name}");
+					sb.AppendLine("\n");
+				}
+
+				if (sb.Length > 0)
+					File.WriteAllText($"Maps/{map.DisplayName}-tables.txt", sb.ToString());
+				//*/
 			}
 		}
 
@@ -83,7 +106,7 @@ namespace GiveMaps.Gimmick
 
 		private static void DrawTables(Bitmap baseMap, List<FLD_CollectionTable> collectionTables)
 		{
-			collectionTables = collectionTables.OrderBy(x => x.Id).ToList();
+			collectionTables = collectionTables.OrderBy(x => x?.Id).ToList();
 			using (Graphics graphics = Graphics.FromImage(baseMap))
 			{
 				int row = 0, x_off = 20, y_off = 20;
@@ -118,25 +141,18 @@ namespace GiveMaps.Gimmick
 			}
 		}
 
-		private static Bitmap GetBaseMap(string areaName)
+		private static string GetBaseMap(string areaName, Options options)
 		{
-			switch (areaName)
-			{
-				case "ma40a":
-					return new Bitmap("Data/tornabase.png");
-				case "ma41a":
-					return new Bitmap("Data/gormottbase.png");
-			}
-
-			return null;
+			return options.Tables.FLD_maplist.FirstOrDefault(x => x.resource == areaName)?._nameID.name;
 		}
 
-		private static Bitmap GenerateBaseMap(List<MapAreaInfo> areaList, Point3 min, Point3 max, Options options, float scale)
+		private static void GenerateBaseMap(MapInfo map, Options options, float scale)
 		{
+			Point3 min = GetMinPoint(map.Areas), max = GetMaxPoint(map.Areas);
 			var baseMap = new Bitmap((int)(scale * (max.X - min.X) * 2), (int)(scale * (max.Z - min.Z) * 2));
-			foreach (var area in areaList)
+			foreach (var area in map.Areas)
 			{
-				var wilay = new WilayRead(File.ReadAllBytes($"{options.DataDir}/menu/image/{area.Name}_map.wilay"));
+				var wilay = new WilayRead(File.ReadAllBytes($"Data/menu/image/{area.Name}_map.wilay"));
 				var areaMap = wilay.Textures[0].ToBitmap();
 				areaMap.RotateFlip(RotateFlipType.Rotate180FlipNone);
 				areaMap = ResizeImage(areaMap, (int)(areaMap.Width * scale), (int)(areaMap.Height * scale));
@@ -144,7 +160,7 @@ namespace GiveMaps.Gimmick
 					graphics.DrawImage(areaMap, 2 * (area.LowerBound.X - min.X), 2 * (area.LowerBound.Z - min.Z));
 			}
 
-			return baseMap;
+			File.WriteAllBytes($"Maps/{GetBaseMap(map.Name, options)}.png", baseMap.ToPng());
 		}
 
 		private static Point3 GetMinPoint(List<MapAreaInfo> areaList)

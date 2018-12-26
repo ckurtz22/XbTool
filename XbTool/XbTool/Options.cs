@@ -8,6 +8,7 @@ namespace XbTool
         public Task Task { get; set; }
         public string ArdFilename { get; set; }
         public string ArhFilename { get; set; }
+		public string SwitchFsDir { get; set; }
         public string BdatDir { get; set; }
         public string Input { get; set; }
         public string Output { get; set; }
@@ -38,6 +39,7 @@ namespace XbTool
         GenerateSite,
         ExportQuests,
         ReplaceArchive,
-		CommunityQuests
+		CommunityQuests,
+		GenerateTreeReqs
 	}
 }

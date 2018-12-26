@@ -5,6 +5,8 @@ using System.Linq;
 using DotNet.Globbing;
 using Ionic.Zlib;
 using XbTool.Common;
+using LibHac.IO;
+using LibHac;
 
 namespace XbTool.Xb2
 {
@@ -24,22 +26,127 @@ namespace XbTool.Xb2
         public uint Key { get; }
         private long Length { get; set; }
 
-        private FileStream Stream { get; }
+		private Application App { get; set; }
+
+        private Stream Stream { get; }
         private string HeaderFilename { get; }
         private byte[] HeaderFile { get; }
         private DataBuffer HeaderFileData { get; }
 
-        public FileArchive(string headerFilename, string dataFilename)
-        {
-            HeaderFilename = headerFilename;
-            HeaderFile = File.ReadAllBytes(headerFilename);
-            HeaderFileData = new DataBuffer(HeaderFile, Game.XB2, 0);
+		public void SaveHeader(string headerFilename)
+		{
+			var HeaderFile = File.ReadAllBytes(headerFilename);
+			var headerFile = new byte[HeaderFile.Length];
+			Array.Copy(HeaderFile, headerFile, HeaderFile.Length);
+			DecryptArh(headerFile);
+			File.WriteAllBytes("bf2_d.arh", headerFile);
+		}
+
+		public Nca GetNcaXci(string xciFilename, Keyset keyset)
+		{
+			if (!File.Exists(xciFilename)) throw new FileNotFoundException("Could not find 0100E95004038000.xci on SD card");
+			var xciFile = new FileStream(xciFilename, FileMode.Open, FileAccess.Read);
+			var xci = new Xci(keyset, xciFile.AsStorage());
+			if (xci.SecurePartition == null) throw new FileNotFoundException("Could not find Secure partition in cartridge XCI");
+			foreach (PfsFileEntry fileEntry in xci.SecurePartition.Files.Where(x => x.Name.EndsWith(".nca")))
+			{
+				IStorage ncaStorage = xci.SecurePartition.OpenFile(fileEntry);
+				var nca = new Nca(keyset, ncaStorage, true);
+
+				if (nca.Header.ContentType == ContentType.Program)
+				{
+					return nca;
+				}
+			}
+			return null;
+		}
+
+		public Keyset GetKeyset()
+		{
+			string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+			string keyFile = Path.Combine(home, ".switch", "prod.keys");
+			string titleKeyFile = Path.Combine(home, ".switch", "title.keys");
+			string consoleKeyFile = Path.Combine(home, ".switch", "console.keys");
+			return ExternalKeys.ReadKeyFile(keyFile, titleKeyFile, consoleKeyFile);
+		}
+
+		public Romfs GetRomfs(Options options)
+		{
+			string switchFsDir = options.SwitchFsDir;
+			var keyset = GetKeyset();
+
+			var switchFs = new SwitchFs(keyset, new FileSystem(switchFsDir));
+			if (!switchFs.Applications.TryGetValue(0x0100e95004038000, out Application app))
+				throw new FileNotFoundException("Xenoblade Chronicles 2 not found in given Switch FS directory");
+			App = app;
+
+			if (App.Main == null)
+			{
+				var xciFileName = Path.Combine(switchFsDir, "0100E95004038000.xci");
+				var nca = GetNcaXci(xciFileName, keyset);
+				if (nca != null)
+					App.Patch.MainNca.SetBaseNca(nca);
+			}
+
+			var section = App.Patch.MainNca.Sections.FirstOrDefault(x => x?.Type == SectionType.Romfs || x?.Type == SectionType.Bktr);
+			return new Romfs(App.Patch.MainNca.OpenSection(section.SectionNum, false, IntegrityCheckLevel.None, true));
+		}
+
+		private void ExtractDLC(string outdir, string pattern)
+		{
+			Glob glob = Glob.Parse(pattern,
+				new GlobOptions { Evaluation = new EvaluationOptions { CaseInsensitive = true } });
+			foreach (Title aoc in App.AddOnContent) 
+			{
+				if (aoc.Id == 0x0100E95004039001) continue; //Torna, in an archive
+				NcaSection section = aoc.MainNca.Sections.FirstOrDefault(x => x?.Type == SectionType.Romfs || x?.Type == SectionType.Bktr);
+				if (section != null)
+				{
+					var romfs = new Romfs(aoc.MainNca.OpenSection(section.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, true));
+					foreach(RomfsFile file in romfs.Files)
+					{
+						if (pattern == null || glob.IsMatch(file.FullPath))
+						{
+							IStorage storage = romfs.OpenFile(file);
+							string outName = outdir + file.FullPath;
+							string dir = Path.GetDirectoryName(outName);
+							if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+
+							using (var outFile = new FileStream(outName, FileMode.Create, FileAccess.ReadWrite))
+							{
+								storage.CopyToStream(outFile, storage.Length);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		public FileArchive(Options options)
+		{
+			if (options.ArdFilename == null && options.SwitchFsDir == null) throw new NullReferenceException("Archive must be specified");
+			
+			if (options.SwitchFsDir == null)
+			{
+				HeaderFilename = options.ArhFilename;
+				HeaderFile = File.ReadAllBytes(HeaderFilename);
+				Stream = new FileStream(options.ArdFilename, FileMode.Open, FileAccess.ReadWrite);
+			}
+			else
+			{
+				var romfs = GetRomfs(options);
+				HeaderFile = romfs.GetFile("/bf2.arh");
+				Stream = romfs.OpenFile("/bf2.ard").AsStream();
+			}
+
+			HeaderFileData = new DataBuffer(HeaderFile, Game.XB2, 0);
 
             var headerFile = new byte[HeaderFile.Length];
             Array.Copy(HeaderFile, headerFile, HeaderFile.Length);
             DecryptArh(headerFile);
+			//File.WriteAllBytes(Path.Combine(options.Output, "bf2_d.arh"), headerFile);
 
-            using (var stream = new MemoryStream(headerFile))
+			using (var stream = new MemoryStream(headerFile))
             using (var reader = new BinaryReader(stream))
             {
                 stream.Position = 4;
@@ -79,7 +186,6 @@ namespace XbTool.Xb2
                 AddAllFilenames();
             }
 
-            Stream = new FileStream(dataFilename, FileMode.Open, FileAccess.ReadWrite);
             Length = Stream.Length;
         }
 
@@ -293,11 +399,14 @@ namespace XbTool.Xb2
             Buffer.BlockCopy(filei, 0, file, 0, file.Length);
         }
 
-        public static void Extract(FileArchive archive, string outDir, IProgressReport progress = null)
-        {
-            var fileInfos = archive.FileInfo.Where(x => !string.IsNullOrWhiteSpace(x.Filename)).ToArray();
-            progress?.SetTotal(fileInfos.Length);
-            progress?.LogMessage("Extracting ARD archive");
+        public static void Extract(FileArchive archive, string outDir, Common.IProgressReport progress = null, string pattern = null)
+		{
+			var fileList = archive.FindFiles(pattern);
+			var fileInfos = archive.FileInfo.Where(x => !string.IsNullOrWhiteSpace(x.Filename));
+			if (pattern != null) fileInfos = fileInfos.Where(x => fileList.Contains(x.Filename));
+
+            progress?.SetTotal(fileInfos.Count());
+            progress?.LogMessage("Extracting ARD archive"); 
 
             foreach (FileInfo fileInfo in fileInfos)
             {
@@ -311,6 +420,11 @@ namespace XbTool.Xb2
                 }
                 progress?.ReportAdd(1);
             }
+
+			if(archive.App != null)
+			{
+				archive.ExtractDLC(outDir, pattern);
+			}
         }
 
         private class Node

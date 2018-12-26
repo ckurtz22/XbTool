@@ -5,6 +5,7 @@ using System.IO;
 using GiveMaps.Common;
 using GiveMaps.Types;
 using static GiveMaps.Program;
+using System;
 
 namespace GiveMaps.Gimmick
 {
@@ -56,9 +57,9 @@ namespace GiveMaps.Gimmick
                         areaInfo.Priority = area.level_priority;
                     }
 
-					if (area._disp_name?.name != null) areaInfo.DisplayName = ( area._disp_name.name == "Entire Area" ?
+					/*if (area._disp_name?.name != null) areaInfo.DisplayName = ( area._disp_name.name == "Entire Area" ?
 							options.Tables.ma40a_FLD_LandmarkPop.Union(options.Tables.ma41a_FLD_LandmarkPop)
-							.FirstOrDefault(x => x._menuMapImage?.Id == area.Id)._menuGroup._disp_name.name : area._disp_name.name);
+							.FirstOrDefault(x => x._menuMapImage?.Id == area.Id)._menuGroup._disp_name.name : area._disp_name.name); //*/
                 }
 
                 var gimmickSet = ReadGimmickSet("Data/gmk", options.Tables, map.Id, options.Type);
@@ -127,6 +128,15 @@ namespace GiveMaps.Gimmick
 					if (items.Contains(gormottItem?._itm1ID) || items.Contains(gormottItem?._itm2ID) || items.Contains(gormottItem?._itm3ID) || items.Contains(gormottItem?._itm4ID) ||
 						items.Contains(tornaItem?._itm1ID) || items.Contains(tornaItem?._itm2ID) || items.Contains(tornaItem?._itm3ID) || items.Contains(tornaItem?._itm4ID)) return true;
 
+					if (IsCollectableMainGame(items, options)) return true;
+
+
+					if (options.Names.Contains(options.Tables.ma40a_FLD_CollectionPopList.FirstOrDefault(x => x.name == gmk.Name)?.Id.ToString()))
+					{
+						return true;
+					}
+
+
 					return false;
 
 				case "enemy":
@@ -143,7 +153,10 @@ namespace GiveMaps.Gimmick
 					var npcs = options.Tables.RSC_NpcList.Where(x => options.Names.Contains(x._Name?.name));
 					var npcPop = options.Tables.ma40a_FLD_NpcPop.Union(options.Tables.ma41a_FLD_NpcPop).FirstOrDefault(x => x.name == gmk.Name);
 
+					var npcPop2 = options.Tables.ma08a_FLD_NpcPop.FirstOrDefault(x => x.name == gmk.Name);
+
 					if (npcs.Contains(npcPop?._NpcID)) return true;
+					if (npcs.Contains(npcPop2?._NpcID)) return true;
 					return false;
 
 				case "all":
@@ -155,5 +168,31 @@ namespace GiveMaps.Gimmick
 			}
 		
 		}
+
+		private static bool IsCollectableMainGame(IEnumerable<ITM_CollectionList> items, Options options)
+		{
+			var list1 = MainGameList1(options);
+			var list2 = MainGameList2(options);
+
+			//list1.
+
+
+			return false;
+		}
+
+		public static List<ma02a_FLD_CollectionPopList> MainGameList1(Options options)
+		{
+			return options.Tables.ma02a_FLD_CollectionPopList.Union(options.Tables.ma05a_FLD_CollectionPopList.Union(options.Tables.ma08a_FLD_CollectionPopList.Union(options.Tables.ma11a_FLD_CollectionPopList.
+				Union(options.Tables.ma10a_FLD_CollectionPopList.Union(options.Tables.ma15a_FLD_CollectionPopList.Union(options.Tables.ma16a_FLD_CollectionPopList.Union(options.Tables.ma17a_FLD_CollectionPopList.
+				Union(options.Tables.ma18a_FLD_CollectionPopList.Union(options.Tables.ma20a_FLD_CollectionPopList.Union(options.Tables.ma21a_FLD_CollectionPopList.Union(options.Tables.ma90a_FLD_CollectionPopList))))))))))).ToList();
+
+		}
+
+		public static List<ma07a_FLD_CollectionPopList> MainGameList2(Options options)
+		{
+			return options.Tables.ma07a_FLD_CollectionPopList.Union(options.Tables.ma13a_FLD_CollectionPopList).ToList();
+		}
+
+
 	}
 }

@@ -107,6 +107,17 @@ namespace XbTool
                             options.Filter = args[i + 1];
                             i++;
                             continue;
+						case "S":
+						case "-SWITCHFS":
+							if(i + 1 >= args.Length)
+							{
+								PrintWithUsage("No argument after -s switch.");
+								return null;
+							}
+
+							options.SwitchFsDir = args[i + 1];
+							i++;
+							continue;
                         case "-XB2DIR":
                             if (i + 1 >= args.Length)
                             {

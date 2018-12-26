@@ -52,8 +52,11 @@ namespace XbTool.Scripting
         {
             Address = data.Position;
             var opcode = (Opcode)data.ReadUInt8();
+			var opcode2 = (Opcode)0x40;
             Opcode = opcode;
-            var opcodeInfo = Opcode.GetInfo();
+			if (opcode == Opcode.JPF)
+				opcode = opcode;
+			var opcodeInfo = Opcode.GetInfo();
             var operand = ReadOperand(data, opcodeInfo.Size);
 
             switch (opcode)
