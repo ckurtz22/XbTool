@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using LibHac.IO;
 using XbTool.Bdat;
 using XbTool.BdatString;
@@ -15,6 +16,7 @@ using XbTool.Scripting;
 using XbTool.Serialization;
 using XbTool.Types;
 using XbTool.Xb2;
+using XbTool.Xb2.GameData;
 
 namespace XbTool
 {
@@ -92,6 +94,9 @@ namespace XbTool
                         break;
                     case Task.SdPrintTest:
                         SdPrintTest(options);
+                        break;
+                    case Task.H2HRequirements:
+                        H2HRequirements(options);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -459,6 +464,29 @@ namespace XbTool
 
             var localFs = new LocalFileSystem("output");
             fs.CopyFileSystem(localFs, options.Progress);
+        }
+
+        private static void H2HRequirements(Options options)
+        {
+            if (options.Output == null) throw new NullReferenceException("No output path was specified.");
+
+            BdatStringCollection tables = GetBdatStringCollection(options);
+
+            var sb = new StringBuilder();
+            sb.AppendLine("Title\tStart Conditions\tView Conditions");
+            foreach (var entry in tables["FLD_KizunaTalk"].Items)
+            {
+                if (entry["EventID"].Reference == null) continue;
+
+                sb.Append($"{entry["Title"].DisplayString}\t");
+                var eventCondition = entry["EVCondition"].Reference;
+                if (eventCondition != null) {
+                    sb.Append(Conditions.ParseConditionList(eventCondition));
+                }
+                sb.Append($"\t{Conditions.ParseConditionList(entry["ConditionID"].Reference)}");
+                sb.AppendLine();
+            }
+            File.WriteAllText(options.Output, sb.ToString());
         }
     }
 }
