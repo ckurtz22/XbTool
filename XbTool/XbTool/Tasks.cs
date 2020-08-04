@@ -93,6 +93,9 @@ namespace XbTool
                     case Task.SdPrintTest:
                         SdPrintTest(options);
                         break;
+                    case Task.GiveMaps:
+                        GiveMaps(options);
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -459,6 +462,18 @@ namespace XbTool
 
             var localFs = new LocalFileSystem("output");
             fs.CopyFileSystem(localFs, options.Progress);
+        }
+
+        private static void GiveMaps(Options options)
+        {
+            if (options.Input == null) throw new NullReferenceException("No input file was specified.");
+            if (options.BdatDir == null) throw new NullReferenceException("No bdat dir was specified.");
+            if (options.Output == null) throw new NullReferenceException("No output dir was specified.");
+            if (options.Game != Game.XB1DE) throw new NotImplementedException("Xb Definitive Edition only.");
+            if (!Directory.Exists(options.Input)) throw new DirectoryNotFoundException($"{options.Input} is not a valid directory.");
+
+            BdatStringCollection tables = GetBdatStringCollection(options);
+            Xbde.Maps.ReadMap(tables, options);
         }
     }
 }
