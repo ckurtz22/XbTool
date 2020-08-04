@@ -15,6 +15,7 @@ using XbTool.Scripting;
 using XbTool.Serialization;
 using XbTool.Types;
 using XbTool.Xb2;
+using XbTool.Xb2.GameData;
 
 namespace XbTool
 {
@@ -95,6 +96,12 @@ namespace XbTool
                         break;
                     case Task.GiveMaps:
                         GiveMaps(options);
+                        break;
+                    case Task.FindInnEvents:
+                        FindInnEvents(options);
+                        break;
+                    case Task.PrintQuests:
+                        PrintQuests(options);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -463,7 +470,6 @@ namespace XbTool
             var localFs = new LocalFileSystem("output");
             fs.CopyFileSystem(localFs, options.Progress);
         }
-
         private static void GiveMaps(Options options)
         {
             if (options.Input == null) throw new NullReferenceException("No input file was specified.");
@@ -474,6 +480,20 @@ namespace XbTool
 
             BdatStringCollection tables = GetBdatStringCollection(options);
             Xbde.Maps.ReadMap(tables, options);
+        }
+
+        private static void FindInnEvents(Options options)
+        {
+            BdatStringCollection tables = GetBdatStringCollection(options);
+            HeartToHeart.PrintH2Hs(tables);
+            //HeartToHeart.FindInnEvents(tables);
+
+        }
+
+        private static void PrintQuests(Options options)
+        {
+            BdatStringCollection tables = GetBdatStringCollection(options);
+            Quest.ReadQuests(tables);
         }
     }
 }

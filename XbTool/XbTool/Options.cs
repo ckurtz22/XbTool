@@ -42,6 +42,8 @@ namespace XbTool
         ExportQuests,
         ReplaceArchive,
         SdPrintTest,
-        GiveMaps
+        GiveMaps,
+        FindInnEvents,
+        PrintQuests
     }
 }
