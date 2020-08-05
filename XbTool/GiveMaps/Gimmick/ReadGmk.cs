@@ -121,43 +121,27 @@ namespace GiveMaps.Gimmick
 			switch (options.Type)
 			{
 				case "collection":
-					var items = options.Tables.ITM_CollectionList.Where(x => options.Names.Contains(x._Name?.name));
-					var gormottItem = options.Tables.ma41a_FLD_CollectionPopList.FirstOrDefault(x => x.name == gmk.Name)?._CollectionTable;
-					var tornaItem = options.Tables.ma40a_FLD_CollectionPopList.FirstOrDefault(x => x.name == gmk.Name)?._CollectionTable;
-
-					if (items.Contains(gormottItem?._itm1ID) || items.Contains(gormottItem?._itm2ID) || items.Contains(gormottItem?._itm3ID) || items.Contains(gormottItem?._itm4ID) ||
-						items.Contains(tornaItem?._itm1ID) || items.Contains(tornaItem?._itm2ID) || items.Contains(tornaItem?._itm3ID) || items.Contains(tornaItem?._itm4ID)) return true;
-
-					if (IsCollectableMainGame(items, options)) return true;
-
-
-					if (options.Names.Contains(options.Tables.ma40a_FLD_CollectionPopList.FirstOrDefault(x => x.name == gmk.Name)?.Id.ToString()))
-					{
-						return true;
-					}
-
-
-					return false;
+                    var gmkItem = options.Bdats.Tables.Where(tbl => tbl.Key.Contains("FLD_CollectionPopList")).SelectMany(tbl => tbl.Value.Items).FirstOrDefault(itm => itm["name"].DisplayString == gmk.Name);
+                    if (gmkItem == null) return false;
+                    if (options.Names.Intersect(gmkItem.Values.Select(itm => itm.Value.DisplayString)).Any())
+                        return true;
+                    if (gmkItem.Values.ContainsKey("CollectionTable") && gmkItem["CollectionTable"].Reference != null)
+                        if (options.Names.Intersect(gmkItem["CollectionTable"].Reference.Values.Select(itm => itm.Value.DisplayString)).Any())
+                            return true;
+                    return false;
 
 				case "enemy":
-					var enemies = options.Tables.CHR_EnArrange.Where(x => options.Names.Contains(x._Name?.name));
-					var gormottEnemy = options.Tables.ma41a_FLD_EnemyPop.FirstOrDefault(x => x.name == gmk.Name);
-					var tornaEnemy = options.Tables.ma40a_FLD_EnemyPop.FirstOrDefault(x => x.name == gmk.Name);
-
-					if (enemies.Contains(gormottEnemy?._ene1ID) || enemies.Contains(gormottEnemy?._ene2ID) || enemies.Contains(gormottEnemy?._ene3ID) || enemies.Contains(gormottEnemy?._ene4ID) ||
-						enemies.Contains(tornaEnemy?._ene1ID) || enemies.Contains(tornaEnemy?._ene2ID) || enemies.Contains(tornaEnemy?._ene3ID) || enemies.Contains(tornaEnemy?._ene4ID)) return true;
-
+                    var enemies = options.Bdats.Tables["CHR_EnArrange"].Items.Where(enemy => options.Names.Contains(enemy["Name"].DisplayString));
+                    var mapEnemies = options.Bdats.Tables.Where(tbl => tbl.Key.Contains("FLD_EnemyPop")).SelectMany(tbl => tbl.Value.Items).FirstOrDefault(itm => itm["name"].DisplayString == gmk.Name);
+                    if (mapEnemies == null) return false;
+                    foreach (var enemy in mapEnemies.Values.Where(val=>val.Key.StartsWith("ene") && val.Key.EndsWith("ID")))
+                        if (enemies.Any(en => en["Name"].DisplayString == enemy.Value.DisplayString))
+                            return true;
 					return false;
 
 				case "npc":
-					var npcs = options.Tables.RSC_NpcList.Where(x => options.Names.Contains(x._Name?.name));
-					var npcPop = options.Tables.ma40a_FLD_NpcPop.Union(options.Tables.ma41a_FLD_NpcPop).FirstOrDefault(x => x.name == gmk.Name);
-
-					var npcPop2 = options.Tables.ma08a_FLD_NpcPop.FirstOrDefault(x => x.name == gmk.Name);
-
-					if (npcs.Contains(npcPop?._NpcID)) return true;
-					if (npcs.Contains(npcPop2?._NpcID)) return true;
-					return false;
+                    var npcPop = options.Bdats.Tables.Where(tbl => tbl.Key.Contains("FLD_NpcPop")).SelectMany(tbl => tbl.Value.Items).FirstOrDefault(itm => itm["name"].DisplayString == gmk.Name);
+                    return npcPop != null && options.Names.Any(name => name == npcPop["NpcID"].DisplayString);
 
 				case "all":
 					return true;
@@ -167,30 +151,6 @@ namespace GiveMaps.Gimmick
 					return false;
 			}
 		
-		}
-
-		private static bool IsCollectableMainGame(IEnumerable<ITM_CollectionList> items, Options options)
-		{
-			var list1 = MainGameList1(options);
-			var list2 = MainGameList2(options);
-
-			//list1.
-
-
-			return false;
-		}
-
-		public static List<ma02a_FLD_CollectionPopList> MainGameList1(Options options)
-		{
-			return options.Tables.ma02a_FLD_CollectionPopList.Union(options.Tables.ma05a_FLD_CollectionPopList.Union(options.Tables.ma08a_FLD_CollectionPopList.Union(options.Tables.ma11a_FLD_CollectionPopList.
-				Union(options.Tables.ma10a_FLD_CollectionPopList.Union(options.Tables.ma15a_FLD_CollectionPopList.Union(options.Tables.ma16a_FLD_CollectionPopList.Union(options.Tables.ma17a_FLD_CollectionPopList.
-				Union(options.Tables.ma18a_FLD_CollectionPopList.Union(options.Tables.ma20a_FLD_CollectionPopList.Union(options.Tables.ma21a_FLD_CollectionPopList.Union(options.Tables.ma90a_FLD_CollectionPopList))))))))))).ToList();
-
-		}
-
-		public static List<ma07a_FLD_CollectionPopList> MainGameList2(Options options)
-		{
-			return options.Tables.ma07a_FLD_CollectionPopList.Union(options.Tables.ma13a_FLD_CollectionPopList).ToList();
 		}
 
 

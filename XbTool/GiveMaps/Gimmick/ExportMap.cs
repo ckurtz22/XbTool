@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using GiveMaps.BdatString;
 using GiveMaps.Common.Textures;
 using GiveMaps.Types;
 using GiveMaps.Xb2.Textures;
@@ -34,7 +35,7 @@ namespace GiveMaps.Gimmick
 				Font font = new Font("Times New Roman", 10);
 				var textBrush = new SolidBrush(System.Drawing.Color.Black);
 
-				var collectionTables = new List<FLD_CollectionTable>();
+				var collectionTables = new List<BdatStringItem>();
 
 				int count = 0;
 
@@ -74,10 +75,10 @@ namespace GiveMaps.Gimmick
 				foreach (var table in collectionTables.Where(x => x != null))
 				{
 					sb.Append(table.Id);
-					if (options.Names.Contains(table._itm1ID?._Name.name)) sb.Append($"\t{table._itm1ID._Name.name}");
-					if (options.Names.Contains(table._itm2ID?._Name.name)) sb.Append($"\t{table._itm2ID._Name.name}");
-					if (options.Names.Contains(table._itm3ID?._Name.name)) sb.Append($"\t{table._itm3ID._Name.name}");
-					if (options.Names.Contains(table._itm4ID?._Name.name)) sb.Append($"\t{table._itm4ID._Name.name}");
+					if (options.Names.Contains(table["itm1ID"].DisplayString)) sb.Append($"\t{table["itm1ID"].DisplayString}");
+					if (options.Names.Contains(table["itm2ID"].DisplayString)) sb.Append($"\t{table["itm2ID"].DisplayString}");
+					if (options.Names.Contains(table["itm3ID"].DisplayString)) sb.Append($"\t{table["itm3ID"].DisplayString}");
+					if (options.Names.Contains(table["itm4ID"].DisplayString)) sb.Append($"\t{table["itm4ID"].DisplayString}");
 					sb.AppendLine("\n");
 				}
 
@@ -87,26 +88,39 @@ namespace GiveMaps.Gimmick
 			}
 		}
 
-		private static System.Drawing.Color CategoryColor(FLD_CollectionTable gmkTable)
+		private static System.Drawing.Color CategoryColor(BdatStringItem gmkTable)
 		{
 			if (gmkTable == null) return System.Drawing.Color.White;
-			switch (gmkTable.categoryName)
+			if (gmkTable.Values.ContainsKey("categoryName"))
 			{
-				case 132: case 148: return System.Drawing.Color.ForestGreen;
-				case 152: case 136: return System.Drawing.Color.Blue;
-				case 137: case 153: return System.Drawing.Color.Brown;
-				case 135: case 151: return System.Drawing.Color.GreenYellow;
-				case 133: case 150: case 149: case 134: return System.Drawing.Color.Red;
-				case 138: case 144: return System.Drawing.Color.SlateGray;
-				case 139: case 145: return System.Drawing.Color.Purple;
-				default: return System.Drawing.Color.White;
-
+				switch (int.Parse(gmkTable["categoryName"].ValueString))
+				{
+					case 132: case 148: return System.Drawing.Color.ForestGreen;
+					case 152: case 136: return System.Drawing.Color.Blue;
+					case 137: case 153: return System.Drawing.Color.Brown;
+					case 135: case 151: return System.Drawing.Color.GreenYellow;
+					case 133: case 150: case 149: case 134: return System.Drawing.Color.Red;
+					case 138: case 144: return System.Drawing.Color.SlateGray;
+					case 139: case 145: return System.Drawing.Color.Purple;
+				}
 			}
+			else if (gmkTable.Values.ContainsKey("FSID"))
+			{
+				switch (gmkTable["FSID"].DisplayString)
+				{
+					case "Botany": return System.Drawing.Color.Red;
+					case "Entomology": return System.Drawing.Color.GreenYellow;
+					case "Forestry": return System.Drawing.Color.ForestGreen;
+					case "Ichthyology": return System.Drawing.Color.Blue;
+					case "Mineralogy": return System.Drawing.Color.Brown;
+				}
+			}
+			return System.Drawing.Color.White;
 		}
 
-		private static void DrawTables(Bitmap baseMap, List<FLD_CollectionTable> collectionTables)
+		private static void DrawTables(Bitmap baseMap, IEnumerable<BdatStringItem> collectionTables)
 		{
-			collectionTables = collectionTables.OrderBy(x => x?.Id).ToList();
+			collectionTables = collectionTables.OrderBy(x => x?.Id);
 			using (Graphics graphics = Graphics.FromImage(baseMap))
 			{
 				int row = 0, x_off = 20, y_off = 20;
@@ -126,11 +140,11 @@ namespace GiveMaps.Gimmick
 				foreach (var table in collectionTables.Where(x => x != null))
 				{
 					tableBrush = new SolidBrush(CategoryColor(table));
-					var text1 = $"Table {table.Id.ToString("000")} drops {table.randitmPopMin} to {table.randitmPopMax} items";
-					string[] text = {	table.itm1Per != 0 ? $"{table._itm1ID?._Name.name ?? ""} - {table.itm1Per}%" : "",
-										table.itm2Per != 0 ? $"{table._itm2ID?._Name.name ?? ""} - {table.itm2Per}%" : "",
-										table.itm3Per != 0 ? $"{table._itm3ID?._Name.name ?? ""} - {table.itm3Per}%" : "",
-										table.itm4Per != 0 ? $"{table._itm4ID?._Name.name ?? ""} - {table.itm4Per}%" : "" };
+					var text1 = $"Table {table.Id.ToString("000")} drops {table["randitmPopMin"].DisplayString} to {table["randitmPopMax"].DisplayString} items";
+					string[] text = {	table["itm1Per"].DisplayString != "" ? $"{table["itm1ID"].DisplayString ?? ""} - {table["itm1Per"].DisplayString}%" : "",
+										table["itm2Per"].DisplayString != "" ? $"{table["itm2ID"].DisplayString ?? ""} - {table["itm2Per"].DisplayString}%" : "",
+										table["itm3Per"].DisplayString != "" ? $"{table["itm3ID"].DisplayString ?? ""} - {table["itm3Per"].DisplayString}%" : "",
+										table["itm4Per"].DisplayString != "" ? $"{table["itm4ID"].DisplayString ?? ""} - {table["itm4Per"].DisplayString}%" : "" };
 					graphics.DrawString(text1,   tableFont, tableBrush, x_off + tableFont.Size * 10, y_off + row++ * tableFont.Size * 1.2f);
 					graphics.DrawString(text[0], tableFont, tableBrush, x_off, y_off + row * tableFont.Size * 1.2f);
 					graphics.DrawString(text[1], tableFont, tableBrush, x_off + tableFont.Size * 20, y_off + row++ * tableFont.Size * 1.2f);
@@ -179,14 +193,15 @@ namespace GiveMaps.Gimmick
 			return new Point3(x, y, z);
 		}
 
-		private static FLD_CollectionTable GetTable(string name, Options options, InfoEntry gmk)
+		private static BdatStringItem GetTable(string name, Options options, InfoEntry gmk)
 		{
 			switch (name)
 			{
 				case "ma40a":
-					return options.Tables.ma40a_FLD_CollectionPopList.FirstOrDefault(x => x.name == gmk.Name)?._CollectionTable;
 				case "ma41a":
-					return options.Tables.ma41a_FLD_CollectionPopList.FirstOrDefault(x => x.name == gmk.Name)?._CollectionTable;
+					return options.Bdats.Tables.Where(tbl => tbl.Key.Contains("ma40a_FLD_Collection") || tbl.Key.Contains("ma41a_FLD_Collection")).SelectMany(tbl => tbl.Value.Items).FirstOrDefault(itm => itm["name"].DisplayString == gmk.Name)["CollectionTable"].Reference;
+				default:
+					return options.Bdats.Tables.Where(tbl => tbl.Key.Contains("FLD_CollectionPopList")).SelectMany(tbl => tbl.Value.Items).FirstOrDefault(itm => itm["name"].DisplayString == gmk.Name);
 			}
 			return null;
 		}

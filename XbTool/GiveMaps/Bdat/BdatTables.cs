@@ -357,7 +357,7 @@ namespace GiveMaps.Bdat
             var names = new Dictionary<string, string>();
 
             Assembly assembly = Assembly.GetExecutingAssembly();
-            Stream resourceStream = assembly.GetManifestResourceStream("XbTool.CodeGen.TypeNames.txt");
+            Stream resourceStream = assembly.GetManifestResourceStream("GiveMaps.CodeGen.TypeNames.txt");
             if (resourceStream == null) throw new InvalidOperationException("Can't open embedded resource");
 
             using (var reader = new StreamReader(resourceStream))

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using GiveMaps.Bdat;
+using GiveMaps.BdatString;
 using GiveMaps.Common;
 using GiveMaps.Gimmick;
 using GiveMaps.Serialization;
@@ -33,12 +34,15 @@ namespace GiveMaps
 			public string Type { get; set; }
 			public BdatCollection Tables { get; set; }
 			public IProgressReport Progress { get; set; }
+			public BdatStringCollection Bdats { get; set; }
 		}
 
 		private static void ReadGimmick(Options options)
 		{
 			string[] filenames = Directory.GetFiles($"Data/bdat", "*");
-			BdatTables bdats = new BdatTables(filenames, options.Game, false);
+			BdatTables bdats = new BdatTables(filenames, options.Game, true);
+			options.Bdats = DeserializeStrings.DeserializeTables(bdats);
+			Metadata.ApplyMetadata(options.Bdats);
 			options.Tables = Deserialize.DeserializeTables(bdats);
 
 			var types = new List<string>(Gimmick.Types.GimmickFieldNames) { "all" };
